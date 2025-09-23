@@ -1,22 +1,24 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents an author of a book.
+/// Represents a book author with initials and last name.
 /// </summary>
 public class Author
 {
     /// <summary>
-    /// Gets or sets the unique identifier of the author.
+    /// Primary key.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
     /// Gets or sets the initials of the author (e.g., "L.N.").
+    /// Optional.
     /// </summary>
-    public string Initials { get; set; } = string.Empty;
+    public string? Initials { get; set; }
 
     /// <summary>
     /// Gets or sets the last name of the author (e.g., "Tolstoy").
+    /// Required.
     /// </summary>
-    public string LastName { get; set; } = string.Empty;
+    public string LastName { get; set; } = null!;
 }
