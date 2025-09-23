@@ -20,5 +20,5 @@ public class Author
     /// Gets or sets the last name of the author (e.g., "Tolstoy").
     /// Required.
     /// </summary>
-    public string LastName { get; set; } = null!;
+    public required string LastName { get; set; }
 }
