@@ -1,7 +1,7 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents the type of a book (e.g., novel, textbook, magazine).
+/// Represents a type of book (e.g., Novel, Textbook).
 /// </summary>
 public class BookType
 {
@@ -13,5 +13,5 @@ public class BookType
     /// <summary>
     /// Gets or sets the name of the book type (e.g., "Novel", "Textbook").
     /// </summary>
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
 }

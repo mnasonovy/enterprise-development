@@ -1,7 +1,7 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a catalog entry of a book in the library.
+/// Represents a book catalog entry in the library.
 /// </summary>
 public class Book
 {
@@ -13,31 +13,30 @@ public class Book
     /// <summary>
     /// Gets or sets the alphabet catalog code of the book.
     /// </summary>
-    public string AlphabetCode { get; set; } = string.Empty;
+    public string? AlphabetCode { get; set; }
 
     /// <summary>
     /// Gets or sets the title of the book.
     /// </summary>
-    public string Title { get; set; } = string.Empty;
+    public required string Title { get; set; }
 
     /// <summary>
-    /// Gets or sets the year of publication of the book.
+    /// Gets or sets the publication year of the book.
     /// </summary>
     public int Year { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the book type (reference to <see cref="BookType"/>).
+    /// Gets or sets the book type (reference entity).
     /// </summary>
-    public int BookTypeId { get; set; }
+    public required BookType BookType { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the publisher (reference to <see cref="Publisher"/>).
+    /// Gets or sets the publisher of the book (reference entity).
     /// </summary>
-    public int PublisherId { get; set; }
+    public required Publisher Publisher { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifiers of the authors associated with this book.
-    /// One book can have multiple authors.
+    /// Gets or sets the list of authors associated with the book.
     /// </summary>
-    public List<int> AuthorIds { get; set; } = new();
+    public List<Author> Authors { get; set; } = [];
 }
