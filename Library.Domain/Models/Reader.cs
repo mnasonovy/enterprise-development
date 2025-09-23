@@ -13,17 +13,19 @@ public class Reader
     /// <summary>
     /// Gets or sets the full name of the reader.
     /// </summary>
-    public string FullName { get; set; } = string.Empty;
+    public required string FullName { get; set; }
 
     /// <summary>
     /// Gets or sets the address of the reader.
+    /// Optional.
     /// </summary>
-    public string Address { get; set; } = string.Empty;
+    public string? Address { get; set; }
 
     /// <summary>
     /// Gets or sets the phone number of the reader.
+    /// Optional.
     /// </summary>
-    public string Phone { get; set; } = string.Empty;
+    public string? Phone { get; set; }
 
     /// <summary>
     /// Gets or sets the date when the reader was registered in the library system.
