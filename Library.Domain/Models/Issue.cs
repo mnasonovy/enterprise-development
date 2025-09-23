@@ -1,7 +1,7 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a record of a book issue (when a reader borrows a book from the library).
+/// Represents a record of a book issued to a reader.
 /// </summary>
 public class Issue
 {
@@ -11,14 +11,14 @@ public class Issue
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the issued book (reference to <see cref="Book"/>).
+    /// Gets or sets the book that was issued.
     /// </summary>
-    public int BookId { get; set; }
+    public required Book Book { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier of the reader who borrowed the book (reference to <see cref="Reader"/>).
+    /// Gets or sets the reader who took the book.
     /// </summary>
-    public int ReaderId { get; set; }
+    public required Reader Reader { get; set; }
 
     /// <summary>
     /// Gets or sets the date when the book was issued.
@@ -26,7 +26,7 @@ public class Issue
     public DateTime IssueDate { get; set; }
 
     /// <summary>
-    /// Gets or sets the number of days for which the book was issued.
+    /// Gets or sets the number of days the book was issued for.
     /// </summary>
     public int DaysCount { get; set; }
 }

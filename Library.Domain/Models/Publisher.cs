@@ -1,7 +1,7 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a book publisher.
+/// Represents a publisher entity.
 /// </summary>
 public class Publisher
 {
@@ -13,5 +13,5 @@ public class Publisher
     /// <summary>
     /// Gets or sets the name of the publisher (e.g., "Eksmo").
     /// </summary>
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
 }
