@@ -1,17 +1,43 @@
 namespace Library.Domain.Models;
 
-// Book catalog entry
+/// <summary>
+/// Represents a catalog entry of a book in the library.
+/// </summary>
 public class Book
 {
-    public int Id { get; set; }                        // Primary key
-    public string AlphabetCode { get; set; } = "";     // Alphabet catalog code
-    public string Title { get; set; } = "";            // Book title
-    public int Year { get; set; }                      // Publication year
+    /// <summary>
+    /// Gets or sets the unique identifier of the book.
+    /// </summary>
+    public int Id { get; set; }
 
-    // References
-    public int BookTypeId { get; set; }                // Reference to BookType
-    public int PublisherId { get; set; }               // Reference to Publisher
+    /// <summary>
+    /// Gets or sets the alphabet catalog code of the book.
+    /// </summary>
+    public string AlphabetCode { get; set; } = string.Empty;
 
-    // Many-to-many relation: one book can have multiple authors
-    public List<int> AuthorIds { get; set; } = [];
+    /// <summary>
+    /// Gets or sets the title of the book.
+    /// </summary>
+    public string Title { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the year of publication of the book.
+    /// </summary>
+    public int Year { get; set; }
+
+    /// <summary>
+    /// Gets or sets the identifier of the book type (reference to <see cref="BookType"/>).
+    /// </summary>
+    public int BookTypeId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the identifier of the publisher (reference to <see cref="Publisher"/>).
+    /// </summary>
+    public int PublisherId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the identifiers of the authors associated with this book.
+    /// One book can have multiple authors.
+    /// </summary>
+    public List<int> AuthorIds { get; set; } = new();
 }

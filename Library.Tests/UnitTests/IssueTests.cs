@@ -4,12 +4,18 @@ using Xunit;
 
 namespace Library.Tests.UnitTests;
 
+/// <summary>
+/// Contains unit tests for the <see cref="Issue"/> entity and related queries.
+/// </summary>
 public class IssueTests
 {
+    /// <summary>
+    /// Verifies that issued books are correctly ordered by title.
+    /// </summary>
     [Fact]
     public void IssuedBooks_ShouldBeOrderedByTitle()
     {
-        // Arrange: generate seed data
+        // Arrange
         var authors = DataSeeder.GenerateAuthors();
         var publishers = DataSeeder.GeneratePublishers();
         var bookTypes = DataSeeder.GenerateBookTypes();
@@ -17,7 +23,7 @@ public class IssueTests
         var readers = DataSeeder.GenerateReaders();
         var issues = DataSeeder.GenerateIssues(books, readers);
 
-        // Act: join Issues with Books and order by Title
+        // Act
         var result = issues
             .Join(books,
                 issue => issue.BookId,
@@ -26,27 +32,29 @@ public class IssueTests
             .OrderBy(x => x.Title)
             .ToList();
 
-        // Assert: ensure result is ordered by Title
+        // Assert
         var sorted = result.OrderBy(x => x.Title).ToList();
         Assert.Equal(sorted, result);
     }
 
+    /// <summary>
+    /// Verifies that the top 5 readers who read the most books in a given period are returned in the correct order.
+    /// </summary>
     [Fact]
     public void Top5Readers_ByBooksReadInPeriod()
     {
-        // Arrange: generate seed data
+        // Arrange
         var authors = DataSeeder.GenerateAuthors();
         var publishers = DataSeeder.GeneratePublishers();
         var bookTypes = DataSeeder.GenerateBookTypes();
         var books = DataSeeder.GenerateBooks(authors, publishers, bookTypes);
         var readers = DataSeeder.GenerateReaders();
-        var issues = DataSeeder.GenerateIssues(books, readers, 50); // more issues for better test
+        var issues = DataSeeder.GenerateIssues(books, readers, 50);
 
-        // Define period (last 6 months)
         var startDate = DateTime.Now.AddMonths(-6);
         var endDate = DateTime.Now;
 
-        // Act: filter issues by period and count books per reader
+        // Act
         var result = issues
             .Where(i => i.IssueDate >= startDate && i.IssueDate <= endDate)
             .GroupBy(i => i.ReaderId)
@@ -60,18 +68,24 @@ public class IssueTests
             .Take(5)
             .ToList();
 
-        // Assert: not more than 5 readers returned
+        // Assert
         Assert.True(result.Count <= 5);
 
-        // Assert: ordered by BooksCount descending, then by name
-        var ordered = result.OrderByDescending(x => x.BooksCount).ThenBy(x => x.Reader.FullName).ToList();
+        var ordered = result
+            .OrderByDescending(x => x.BooksCount)
+            .ThenBy(x => x.Reader.FullName)
+            .ToList();
+
         Assert.Equal(ordered, result);
     }
 
+    /// <summary>
+    /// Verifies that readers with the longest issue periods are returned, ordered by full name.
+    /// </summary>
     [Fact]
     public void Readers_WithLongestIssuePeriod_OrderedByName()
     {
-        // Arrange: generate seed data
+        // Arrange
         var authors = DataSeeder.GenerateAuthors();
         var publishers = DataSeeder.GeneratePublishers();
         var bookTypes = DataSeeder.GenerateBookTypes();
@@ -79,7 +93,7 @@ public class IssueTests
         var readers = DataSeeder.GenerateReaders();
         var issues = DataSeeder.GenerateIssues(books, readers, 50);
 
-        // Act: find max DaysCount per reader, then order by FullName
+        // Act
         var result = issues
             .GroupBy(i => i.ReaderId)
             .Select(g => new
@@ -90,18 +104,20 @@ public class IssueTests
             .OrderBy(r => r.Reader.FullName)
             .ToList();
 
-        // Assert: check ordering by FullName
+        // Assert
         var ordered = result.OrderBy(r => r.Reader.FullName).ToList();
         Assert.Equal(ordered, result);
 
-        // Assert: every MaxDays > 0
         Assert.All(result, r => Assert.True(r.MaxDays > 0));
     }
 
+    /// <summary>
+    /// Verifies that the top 5 publishers with the most issued books in the last year are returned in the correct order.
+    /// </summary>
     [Fact]
     public void Top5Publishers_ByIssuedBooksInLastYear()
     {
-        // Arrange: generate seed data
+        // Arrange
         var authors = DataSeeder.GenerateAuthors();
         var publishers = DataSeeder.GeneratePublishers();
         var bookTypes = DataSeeder.GenerateBookTypes();
@@ -109,10 +125,9 @@ public class IssueTests
         var readers = DataSeeder.GenerateReaders();
         var issues = DataSeeder.GenerateIssues(books, readers, 100);
 
-        // Define period (last year)
         var since = DateTime.Now.AddYears(-1);
 
-        // Act: join Issues -> Books -> Publishers, filter by last year, group by Publisher
+        // Act
         var result = issues
             .Where(i => i.IssueDate >= since)
             .Join(books,
@@ -134,18 +149,24 @@ public class IssueTests
             .Take(5)
             .ToList();
 
-        // Assert: not more than 5 publishers returned
+        // Assert
         Assert.True(result.Count <= 5);
 
-        // Assert: ordered by IssuesCount descending
-        var ordered = result.OrderByDescending(x => x.IssuesCount).ThenBy(x => x.Publisher.Name).ToList();
+        var ordered = result
+            .OrderByDescending(x => x.IssuesCount)
+            .ThenBy(x => x.Publisher.Name)
+            .ToList();
+
         Assert.Equal(ordered, result);
     }
 
+    /// <summary>
+    /// Verifies that the top 5 least popular books in the last year are returned in the correct order.
+    /// </summary>
     [Fact]
     public void Top5LeastPopularBooks_InLastYear()
     {
-        // Arrange: generate seed data
+        // Arrange
         var authors = DataSeeder.GenerateAuthors();
         var publishers = DataSeeder.GeneratePublishers();
         var bookTypes = DataSeeder.GenerateBookTypes();
@@ -153,10 +174,9 @@ public class IssueTests
         var readers = DataSeeder.GenerateReaders();
         var issues = DataSeeder.GenerateIssues(books, readers, 100);
 
-        // Define period (last year)
         var since = DateTime.Now.AddYears(-1);
 
-        // Act: group by Book, count issues, sort ascending (least popular), take 5
+        // Act
         var result = issues
             .Where(i => i.IssueDate >= since)
             .GroupBy(i => i.BookId)
@@ -170,11 +190,14 @@ public class IssueTests
             .Take(5)
             .ToList();
 
-        // Assert: not more than 5 books returned
+        // Assert
         Assert.True(result.Count <= 5);
 
-        // Assert: ordered ascending by IssuesCount
-        var ordered = result.OrderBy(x => x.IssuesCount).ThenBy(x => x.Book.Title).ToList();
+        var ordered = result
+            .OrderBy(x => x.IssuesCount)
+            .ThenBy(x => x.Book.Title)
+            .ToList();
+
         Assert.Equal(ordered, result);
     }
 }

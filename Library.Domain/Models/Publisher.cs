@@ -1,8 +1,17 @@
 namespace Library.Domain.Models;
 
-// Publisher reference
+/// <summary>
+/// Represents a book publisher.
+/// </summary>
 public class Publisher
 {
-    public int Id { get; set; }                  // Primary key
-    public string Name { get; set; } = "";       // Publisher name (e.g., "Eksmo")
+    /// <summary>
+    /// Gets or sets the unique identifier of the publisher.
+    /// </summary>
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the publisher (e.g., "Eksmo").
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 }

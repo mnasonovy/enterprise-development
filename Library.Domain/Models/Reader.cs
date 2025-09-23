@@ -1,11 +1,32 @@
 namespace Library.Domain.Models;
 
-// Library reader card
+/// <summary>
+/// Represents a library reader with personal details and registration information.
+/// </summary>
 public class Reader
 {
-    public int Id { get; set; }                   // Primary key
-    public string FullName { get; set; } = "";    // Full name
-    public string Address { get; set; } = "";     // Address
-    public string Phone { get; set; } = "";       // Phone number
-    public DateTime RegistrationDate { get; set; } // Registration date
+    /// <summary>
+    /// Gets or sets the unique identifier of the reader.
+    /// </summary>
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the full name of the reader.
+    /// </summary>
+    public string FullName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the address of the reader.
+    /// </summary>
+    public string Address { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the phone number of the reader.
+    /// </summary>
+    public string Phone { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the date when the reader was registered in the library system.
+    /// </summary>
+    public DateTime RegistrationDate { get; set; }
 }

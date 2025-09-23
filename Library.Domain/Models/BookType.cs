@@ -1,8 +1,17 @@
 namespace Library.Domain.Models;
 
-// Book type reference (e.g., novel, textbook, magazine)
+/// <summary>
+/// Represents the type of a book (e.g., novel, textbook, magazine).
+/// </summary>
 public class BookType
 {
-    public int Id { get; set; }                // Primary key
-    public string Name { get; set; } = "";     // Type name (e.g., "Novel", "Textbook")
-}   
+    /// <summary>
+    /// Gets or sets the unique identifier of the book type.
+    /// </summary>
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the name of the book type (e.g., "Novel", "Textbook").
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+}
