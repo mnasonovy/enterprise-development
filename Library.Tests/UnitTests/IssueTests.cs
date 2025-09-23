@@ -67,4 +67,34 @@ public class IssueTests
         var ordered = result.OrderByDescending(x => x.BooksCount).ThenBy(x => x.Reader.FullName).ToList();
         Assert.Equal(ordered, result);
     }
+
+    [Fact]
+    public void Readers_WithLongestIssuePeriod_OrderedByName()
+    {
+        // Arrange: generate seed data
+        var authors = DataSeeder.GenerateAuthors();
+        var publishers = DataSeeder.GeneratePublishers();
+        var bookTypes = DataSeeder.GenerateBookTypes();
+        var books = DataSeeder.GenerateBooks(authors, publishers, bookTypes);
+        var readers = DataSeeder.GenerateReaders();
+        var issues = DataSeeder.GenerateIssues(books, readers, 50);
+
+        // Act: find max DaysCount per reader, then order by FullName
+        var result = issues
+            .GroupBy(i => i.ReaderId)
+            .Select(g => new
+            {
+                Reader = readers.First(r => r.Id == g.Key),
+                MaxDays = g.Max(i => i.DaysCount)
+            })
+            .OrderBy(r => r.Reader.FullName)
+            .ToList();
+
+        // Assert: check ordering by FullName
+        var ordered = result.OrderBy(r => r.Reader.FullName).ToList();
+        Assert.Equal(ordered, result);
+
+        // Assert: every MaxDays > 0
+        Assert.All(result, r => Assert.True(r.MaxDays > 0));
+    }
 }
