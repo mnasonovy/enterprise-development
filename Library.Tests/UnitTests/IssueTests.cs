@@ -141,4 +141,40 @@ public class IssueTests
         var ordered = result.OrderByDescending(x => x.IssuesCount).ThenBy(x => x.Publisher.Name).ToList();
         Assert.Equal(ordered, result);
     }
+
+    [Fact]
+    public void Top5LeastPopularBooks_InLastYear()
+    {
+        // Arrange: generate seed data
+        var authors = DataSeeder.GenerateAuthors();
+        var publishers = DataSeeder.GeneratePublishers();
+        var bookTypes = DataSeeder.GenerateBookTypes();
+        var books = DataSeeder.GenerateBooks(authors, publishers, bookTypes, 20);
+        var readers = DataSeeder.GenerateReaders();
+        var issues = DataSeeder.GenerateIssues(books, readers, 100);
+
+        // Define period (last year)
+        var since = DateTime.Now.AddYears(-1);
+
+        // Act: group by Book, count issues, sort ascending (least popular), take 5
+        var result = issues
+            .Where(i => i.IssueDate >= since)
+            .GroupBy(i => i.BookId)
+            .Select(g => new
+            {
+                Book = books.First(b => b.Id == g.Key),
+                IssuesCount = g.Count()
+            })
+            .OrderBy(x => x.IssuesCount)
+            .ThenBy(x => x.Book.Title)
+            .Take(5)
+            .ToList();
+
+        // Assert: not more than 5 books returned
+        Assert.True(result.Count <= 5);
+
+        // Assert: ordered ascending by IssuesCount
+        var ordered = result.OrderBy(x => x.IssuesCount).ThenBy(x => x.Book.Title).ToList();
+        Assert.Equal(ordered, result);
+    }
 }
