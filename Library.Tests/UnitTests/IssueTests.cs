@@ -97,4 +97,48 @@ public class IssueTests
         // Assert: every MaxDays > 0
         Assert.All(result, r => Assert.True(r.MaxDays > 0));
     }
+
+    [Fact]
+    public void Top5Publishers_ByIssuedBooksInLastYear()
+    {
+        // Arrange: generate seed data
+        var authors = DataSeeder.GenerateAuthors();
+        var publishers = DataSeeder.GeneratePublishers();
+        var bookTypes = DataSeeder.GenerateBookTypes();
+        var books = DataSeeder.GenerateBooks(authors, publishers, bookTypes);
+        var readers = DataSeeder.GenerateReaders();
+        var issues = DataSeeder.GenerateIssues(books, readers, 100);
+
+        // Define period (last year)
+        var since = DateTime.Now.AddYears(-1);
+
+        // Act: join Issues -> Books -> Publishers, filter by last year, group by Publisher
+        var result = issues
+            .Where(i => i.IssueDate >= since)
+            .Join(books,
+                issue => issue.BookId,
+                book => book.Id,
+                (issue, book) => book)
+            .Join(publishers,
+                book => book.PublisherId,
+                publisher => publisher.Id,
+                (book, publisher) => publisher)
+            .GroupBy(p => p.Id)
+            .Select(g => new
+            {
+                Publisher = publishers.First(p => p.Id == g.Key),
+                IssuesCount = g.Count()
+            })
+            .OrderByDescending(x => x.IssuesCount)
+            .ThenBy(x => x.Publisher.Name)
+            .Take(5)
+            .ToList();
+
+        // Assert: not more than 5 publishers returned
+        Assert.True(result.Count <= 5);
+
+        // Assert: ordered by IssuesCount descending
+        var ordered = result.OrderByDescending(x => x.IssuesCount).ThenBy(x => x.Publisher.Name).ToList();
+        Assert.Equal(ordered, result);
+    }
 }
