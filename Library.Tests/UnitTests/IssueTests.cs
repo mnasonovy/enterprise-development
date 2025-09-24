@@ -13,7 +13,7 @@ namespace Library.Tests.UnitTests;
 /// 4) Top-5 publishers by number of issued books in the last year;
 /// 5) Top-5 the least popular books in the last year.
 /// </remarks>
-public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
+public class IssueTests(DataSeed seed) : IClassFixture<DataSeed>
 {
     /// <summary>
     /// Returns distinct issued book titles ordered alphabetically.
