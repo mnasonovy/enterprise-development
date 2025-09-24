@@ -32,7 +32,7 @@ public class DataSeed
     public List<Reader> Readers => _readers;
     public List<Issue> Issues => _issues;
 
-    private List<Author> InitAuthors() =>
+    private static List<Author> InitAuthors() =>   
     [
         new Author { Id = 1,  Initials = "L.N.", LastName = "Tolstoy" },
         new Author { Id = 2,  Initials = "F.M.", LastName = "Dostoevsky" },
@@ -46,7 +46,7 @@ public class DataSeed
         new Author { Id = 10, Initials = "V.V.", LastName = "Nabokov" },
     ];
 
-    private List<Publisher> InitPublishers() =>
+    private static List<Publisher> InitPublishers() =>
     [
         new Publisher { Id = 1,  Name = "Eksmo" },
         new Publisher { Id = 2,  Name = "AST" },
@@ -60,7 +60,7 @@ public class DataSeed
         new Publisher { Id = 10, Name = "Phoenix" },
     ];
 
-    private List<BookType> InitBookTypes() =>
+    private static List<BookType> InitBookTypes() =>
     [
         new BookType { Id = 1,  Name = "Novel" },
         new BookType { Id = 2,  Name = "Short Stories" },
@@ -93,7 +93,7 @@ public class DataSeed
         new Book { Id = 15, Title = "The Enchanted Forest", Year = 2010, AlphabetCode = "TEF", BookType = _bookTypes[9], Publisher = _publishers[4], Authors = [_authors[9]] }
     ];
 
-    private List<Reader> InitReaders() =>
+    private static List<Reader> InitReaders() =>
     [
         new Reader { Id = 1, FullName = "Ivan Petrov", Address = "Moscow", Phone = "12345", RegistrationDate = new DateTime(2020, 1, 1) },
         new Reader { Id = 2, FullName = "Anna Ivanova", Address = "SPb", Phone = "67890", RegistrationDate = new DateTime(2021, 2, 1) },

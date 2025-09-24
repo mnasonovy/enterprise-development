@@ -1,4 +1,3 @@
-using Library.Domain.Models;
 using Xunit;
 
 namespace Library.Tests.UnitTests;
