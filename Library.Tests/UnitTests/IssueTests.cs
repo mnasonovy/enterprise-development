@@ -1,4 +1,3 @@
-using Library.Tests.UnitTests;
 using Library.Domain.Models;
 using Xunit;
 
@@ -13,7 +12,7 @@ namespace Library.Tests.UnitTests;
 /// 2) Top-5 readers by number of books in a given period (last 6 months);
 /// 3) Readers who took books for the longest period, ordered by full name;
 /// 4) Top-5 publishers by number of issued books in the last year;
-/// 5) Top-5 least popular books in the last year.
+/// 5) Top-5 the least popular books in the last year.
 /// </remarks>
 public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
 {
@@ -21,16 +20,14 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
     /// Returns distinct issued book titles ordered alphabetically.
     /// </summary>
     [Fact]
-    public void IssuedBooks_ShouldBeOrderedByTitle()
+    public void IssuedBooksShouldBeOrderedByTitle()
     {
-        // Act
         var result = seed.Issues
             .Select(i => i.Book.Title)
             .Distinct()
             .OrderBy(t => t)
             .ToList();
 
-        // Expected: only titles that actually appear in Issues, sorted A→Z
         var expected = new[]
         {
             "A Month in the Country",
@@ -48,7 +45,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             "War and Peace"
         };
 
-        // Assert
         Assert.Equal(expected, result);
     }
 
@@ -56,23 +52,20 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
     /// Returns the top 5 readers who read the most books within the last 6 months.
     /// </summary>
     [Fact]
-    public void Top5Readers_ByBooksReadInLast6Months()
+    public void Top5ReadersByBooksReadInLast6Months()
     {
-        // Arrange
         var start = DateTime.Today.AddMonths(-6);
         var end = DateTime.Today;
 
-        // Act
         var result = seed.Issues
             .Where(i => i.IssueDate >= start && i.IssueDate <= end)
             .GroupBy(i => i.Reader)
-            .Select(g => new { FullName = g.Key.FullName, BooksCount = g.Count() })
+            .Select(g => new { g.Key.FullName, BooksCount = g.Count() })
             .OrderByDescending(x => x.BooksCount)
             .ThenBy(x => x.FullName)
             .Take(5)
             .ToArray();
 
-        // Expected (precomputed for the seeded data)
         var expected = new[]
         {
             new { FullName = "Ivan Petrov",     BooksCount = 3 },
@@ -82,7 +75,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             new { FullName = "Elena Popova",    BooksCount = 1 }
         };
 
-        // Assert
         Assert.Equal(expected.Length, result.Length);
         for (var i = 0; i < expected.Length; i++)
         {
@@ -95,9 +87,8 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
     /// Returns readers with their maximum issue period (in days), ordered by full name.
     /// </summary>
     [Fact]
-    public void Readers_WithLongestIssuePeriod_OrderedByName()
+    public void ReadersWithLongestIssuePeriodOrderedByName()
     {
-        // Act
         var result = seed.Issues
             .GroupBy(i => i.Reader)
             .Select(g => new { Reader = g.Key, MaxDays = g.Max(i => i.DaysCount) })
@@ -105,7 +96,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             .OrderBy(r => r.Reader.FullName)
             .ToList();
 
-        // Expected (precomputed for the seeded data; A→Z by FullName)
         var expected = new List<(string FullName, int MaxDays)>
         {
             ("Alexey Mikhailov", 14),
@@ -119,7 +109,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             ("Sergey Smirnov", 14)
         };
 
-        // Assert
         Assert.Equal(expected.Count, result.Count);
         for (var i = 0; i < expected.Count; i++)
         {
@@ -132,9 +121,8 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
     /// Returns the top 5 publishers by number of issued books over the last year.
     /// </summary>
     [Fact]
-    public void Top5Publishers_ByIssuedBooksInLastYear()
+    public void Top5PublishersByIssuedBooksInLastYear()
     {
-        // Act
         var result = seed.Issues
             .Where(i => i.IssueDate >= DateTime.Today.AddYears(-1))
             .GroupBy(i => i.Book.Publisher)
@@ -144,7 +132,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             .Take(5)
             .ToList();
 
-        // Expected (precomputed for the seeded data)
         var expected = new List<(string Publisher, int IssuesCount)>
         {
             ("Eksmo", 4),
@@ -154,7 +141,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             ("Drofa", 2)
         };
 
-        // Assert
         Assert.Equal(expected.Count, result.Count);
         for (var i = 0; i < expected.Count; i++)
         {
@@ -167,12 +153,10 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
     /// Returns the top 5 least popular books (by issue count) in the last year.
     /// </summary>
     [Fact]
-    public void Top5LeastPopularBooks_InLastYear()
+    public void Top5LeastPopularBooksInLastYear()
     {
-        // Arrange
         var since = DateTime.Today.AddYears(-1);
 
-        // Act
         var result = seed.Issues
             .Where(i => i.IssueDate >= since)
             .GroupBy(i => i.Book)
@@ -182,7 +166,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             .Take(5)
             .ToList();
 
-        // Expected (precomputed for the seeded data)
         var expected = new List<(string Title, int IssuesCount)>
         {
             ("A Month in the Country", 1),
@@ -192,7 +175,6 @@ public class LibraryQueriesTests(DataSeed seed) : IClassFixture<DataSeed>
             ("Literary Encyclopedia",  1)
         };
 
-        // Assert
         Assert.Equal(expected.Count, result.Count);
         for (var i = 0; i < expected.Count; i++)
         {

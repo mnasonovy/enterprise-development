@@ -20,9 +20,9 @@ public class DataSeed
         _authors = InitAuthors();
         _publishers = InitPublishers();
         _bookTypes = InitBookTypes();
-        _books = InitBooks(_bookTypes, _publishers, _authors);
+        _books = InitBooks();
         _readers = InitReaders();
-        _issues = InitIssues(_books, _readers);
+        _issues = InitIssues();
     }
 
     public List<Author> Authors => _authors;
@@ -32,7 +32,7 @@ public class DataSeed
     public List<Reader> Readers => _readers;
     public List<Issue> Issues => _issues;
 
-    private static List<Author> InitAuthors() =>
+    private List<Author> InitAuthors() =>
     [
         new Author { Id = 1,  Initials = "L.N.", LastName = "Tolstoy" },
         new Author { Id = 2,  Initials = "F.M.", LastName = "Dostoevsky" },
@@ -45,8 +45,8 @@ public class DataSeed
         new Author { Id = 9,  Initials = "M.",   LastName = "Gorky" },
         new Author { Id = 10, Initials = "V.V.", LastName = "Nabokov" },
     ];
-    
-    private static List<Publisher> InitPublishers() =>
+
+    private List<Publisher> InitPublishers() =>
     [
         new Publisher { Id = 1,  Name = "Eksmo" },
         new Publisher { Id = 2,  Name = "AST" },
@@ -60,8 +60,7 @@ public class DataSeed
         new Publisher { Id = 10, Name = "Phoenix" },
     ];
 
-
-    private static List<BookType> InitBookTypes() =>
+    private List<BookType> InitBookTypes() =>
     [
         new BookType { Id = 1,  Name = "Novel" },
         new BookType { Id = 2,  Name = "Short Stories" },
@@ -75,66 +74,62 @@ public class DataSeed
         new BookType { Id = 10, Name = "Fantasy" },
     ];
 
-
-    private static List<Book> InitBooks(List<BookType> types, List<Publisher> publishers, List<Author> authors) =>
+    private List<Book> InitBooks() =>
     [
-        new Book { Id = 1,  Title = "Ancient Philosophy",      Year = 1800, BookType = types[7], Publisher = publishers[0], Authors = [authors[2]] },
-        new Book { Id = 2,  Title = "Modern Programming",      Year = 2025, BookType = types[4], Publisher = publishers[1], Authors = [authors[1]] },
-        new Book { Id = 3,  Title = "War and Peace",           Year = 1869, AlphabetCode = "WNP", BookType = types[0], Publisher = publishers[2], Authors = [authors[0]] },
-        new Book { Id = 4,  Title = "Crime and Punishment",    Year = 1866, AlphabetCode = "CAP", BookType = types[0], Publisher = publishers[3], Authors = [authors[1]] },
-        new Book { Id = 5,  Title = "Eugene Onegin",           Year = 1833, AlphabetCode = "EON", BookType = types[3], Publisher = publishers[4], Authors = [authors[2]] },
-        new Book { Id = 6,  Title = "The Master and Margarita",Year = 1967, AlphabetCode = "MAM", BookType = types[0], Publisher = publishers[5], Authors = [authors[3]] },
-        new Book { Id = 7,  Title = "Collected Works",         Year = 1900, AlphabetCode = null,  BookType = types[1], Publisher = publishers[6], Authors = [authors[4], authors[5]] },
-        new Book { Id = 8,  Title = "Doctor Zhivago",          Year = 1957, AlphabetCode = "DZ",  BookType = types[0], Publisher = publishers[7], Authors = [authors[7]] },
-        new Book { Id = 9,  Title = "Mother",                  Year = 1906, AlphabetCode = "MOT", BookType = types[0], Publisher = publishers[8], Authors = [authors[8]] },
-        new Book { Id = 10, Title = "Lolita",                  Year = 1955, AlphabetCode = "LOL", BookType = types[0], Publisher = publishers[9], Authors = [authors[9]] },
-        new Book { Id = 11, Title = "A Month in the Country",  Year = 1855, AlphabetCode = "AMC", BookType = types[2], Publisher = publishers[0], Authors = [authors[6]] },
-        new Book { Id = 12, Title = "Modern Review",           Year = 2023, AlphabetCode = "MR",  BookType = types[5], Publisher = publishers[1], Authors = [authors[0], authors[1], authors[2]] },
-        new Book { Id = 13, Title = "Literary Encyclopedia",   Year = 1990, AlphabetCode = "LEN", BookType = types[6], Publisher = publishers[2], Authors = [authors[4]] },
-        new Book { Id = 14, Title = "Children's Tales",        Year = 1875, AlphabetCode = "CTA", BookType = types[8], Publisher = publishers[3], Authors = [authors[0]] },
-        new Book { Id = 15, Title = "The Enchanted Forest",    Year = 2010, AlphabetCode = "TEF", BookType = types[9], Publisher = publishers[4], Authors = [authors[9]] }
+        new Book { Id = 1,  Title = "Ancient Philosophy", Year = 1800, BookType = _bookTypes[7], Publisher = _publishers[0], Authors = [_authors[2]] },
+        new Book { Id = 2,  Title = "Modern Programming", Year = 2025, BookType = _bookTypes[4], Publisher = _publishers[1], Authors = [_authors[1]] },
+        new Book { Id = 3,  Title = "War and Peace", Year = 1869, AlphabetCode = "WNP", BookType = _bookTypes[0], Publisher = _publishers[2], Authors = [_authors[0]] },
+        new Book { Id = 4,  Title = "Crime and Punishment", Year = 1866, AlphabetCode = "CAP", BookType = _bookTypes[0], Publisher = _publishers[3], Authors = [_authors[1]] },
+        new Book { Id = 5,  Title = "Eugene Onegin", Year = 1833, AlphabetCode = "EON", BookType = _bookTypes[3], Publisher = _publishers[4], Authors = [_authors[2]] },
+        new Book { Id = 6,  Title = "The Master and Margarita", Year = 1967, AlphabetCode = "MAM", BookType = _bookTypes[0], Publisher = _publishers[5], Authors = [_authors[3]] },
+        new Book { Id = 7,  Title = "Collected Works", Year = 1900, BookType = _bookTypes[1], Publisher = _publishers[6], Authors = [_authors[4], _authors[5]] },
+        new Book { Id = 8,  Title = "Doctor Zhivago", Year = 1957, AlphabetCode = "DZ", BookType = _bookTypes[0], Publisher = _publishers[7], Authors = [_authors[7]] },
+        new Book { Id = 9,  Title = "Mother", Year = 1906, AlphabetCode = "MOT", BookType = _bookTypes[0], Publisher = _publishers[8], Authors = [_authors[8]] },
+        new Book { Id = 10, Title = "Lolita", Year = 1955, AlphabetCode = "LOL", BookType = _bookTypes[0], Publisher = _publishers[9], Authors = [_authors[9]] },
+        new Book { Id = 11, Title = "A Month in the Country", Year = 1855, AlphabetCode = "AMC", BookType = _bookTypes[2], Publisher = _publishers[0], Authors = [_authors[6]] },
+        new Book { Id = 12, Title = "Modern Review", Year = 2023, AlphabetCode = "MR", BookType = _bookTypes[5], Publisher = _publishers[1], Authors = [_authors[0], _authors[1], _authors[2]] },
+        new Book { Id = 13, Title = "Literary Encyclopedia", Year = 1990, AlphabetCode = "LEN", BookType = _bookTypes[6], Publisher = _publishers[2], Authors = [_authors[4]] },
+        new Book { Id = 14, Title = "Children's Tales", Year = 1875, AlphabetCode = "CTA", BookType = _bookTypes[8], Publisher = _publishers[3], Authors = [_authors[0]] },
+        new Book { Id = 15, Title = "The Enchanted Forest", Year = 2010, AlphabetCode = "TEF", BookType = _bookTypes[9], Publisher = _publishers[4], Authors = [_authors[9]] }
     ];
 
-
-    private static List<Reader> InitReaders() =>
+    private List<Reader> InitReaders() =>
     [
-        new Reader { Id = 1,  FullName = "Ivan Petrov",      Address = "Moscow",     Phone = "12345", RegistrationDate = new DateTime(2020, 1, 1) },
-        new Reader { Id = 2,  FullName = "Anna Ivanova",     Address = "SPb",        Phone = "67890", RegistrationDate = new DateTime(2021, 2, 1) },
-        new Reader { Id = 3,  FullName = "Sergey Smirnov",   Address = "",           Phone = "11111", RegistrationDate = new DateTime(2022, 3, 1) },
-        new Reader { Id = 4,  FullName = "Olga Sokolova",    Address = "Perm",       Phone = null!,   RegistrationDate = new DateTime(2020, 4, 1) },
-        new Reader { Id = 5,  FullName = "Pavel Kuznetsov",  Address = "Samara",     Phone = "33333", RegistrationDate = DateTime.Today },
-        new Reader { Id = 6,  FullName = "Elena Popova",     Address = "Moscow",     Phone = "44444", RegistrationDate = DateTime.Today.AddYears(-20) },
-        new Reader { Id = 7,  FullName = "Dmitry Volkov",    Address = "Tula",       Phone = "55555", RegistrationDate = new DateTime(2022, 7, 1) },
-        new Reader { Id = 8,  FullName = "Maria Morozova",   Address = "Sochi",      Phone = "66666", RegistrationDate = new DateTime(2021, 8, 1) },
-        new Reader { Id = 9,  FullName = "Nikita Lebedev",   Address = "Minsk",      Phone = "77777", RegistrationDate = new DateTime(2020, 9, 1) },
-        new Reader { Id = 10, FullName = "Kseniya Vlasova",  Address = "Rostov",     Phone = "88888", RegistrationDate = new DateTime(2023, 10, 1) },
+        new Reader { Id = 1, FullName = "Ivan Petrov", Address = "Moscow", Phone = "12345", RegistrationDate = new DateTime(2020, 1, 1) },
+        new Reader { Id = 2, FullName = "Anna Ivanova", Address = "SPb", Phone = "67890", RegistrationDate = new DateTime(2021, 2, 1) },
+        new Reader { Id = 3, FullName = "Sergey Smirnov", Address = "", Phone = "11111", RegistrationDate = new DateTime(2022, 3, 1) },
+        new Reader { Id = 4, FullName = "Olga Sokolova", Address = "Perm", Phone = null!, RegistrationDate = new DateTime(2020, 4, 1) },
+        new Reader { Id = 5, FullName = "Pavel Kuznetsov", Address = "Samara", Phone = "33333", RegistrationDate = DateTime.Today },
+        new Reader { Id = 6, FullName = "Elena Popova", Address = "Moscow", Phone = "44444", RegistrationDate = DateTime.Today.AddYears(-20) },
+        new Reader { Id = 7, FullName = "Dmitry Volkov", Address = "Tula", Phone = "55555", RegistrationDate = new DateTime(2022, 7, 1) },
+        new Reader { Id = 8, FullName = "Maria Morozova", Address = "Sochi", Phone = "66666", RegistrationDate = new DateTime(2021, 8, 1) },
+        new Reader { Id = 9, FullName = "Nikita Lebedev", Address = "Minsk", Phone = "77777", RegistrationDate = new DateTime(2020, 9, 1) },
+        new Reader { Id = 10, FullName = "Kseniya Vlasova", Address = "Rostov", Phone = "88888", RegistrationDate = new DateTime(2023, 10, 1) },
         new Reader { Id = 11, FullName = "Alexey Mikhailov", Address = "Novosibirsk", Phone = "99999", RegistrationDate = new DateTime(2024, 11, 11) },
-        new Reader { Id = 12, FullName = "Irina Sidorova",   Address = "London",     Phone = "22222", RegistrationDate = new DateTime(2019, 12, 31) },
+        new Reader { Id = 12, FullName = "Irina Sidorova", Address = "London", Phone = "22222", RegistrationDate = new DateTime(2019, 12, 31) }
     ];
 
-
-    private static List<Issue> InitIssues(List<Book> books, List<Reader> readers) =>
+    private List<Issue> InitIssues() =>
     [
-        new Issue { Id = 1, Book = books[0], Reader = readers[0], IssueDate = new DateTime(2025, 1, 10), DaysCount = 14 },
-        new Issue { Id = 2, Book = books[1], Reader = readers[1], IssueDate = new DateTime(2025, 2, 5), DaysCount = 21 },
-        new Issue { Id = 3, Book = books[2], Reader = readers[2], IssueDate = DateTime.Today, DaysCount = 1 },
-        new Issue { Id = 4, Book = books[3], Reader = readers[3], IssueDate = DateTime.Today.AddDays(-400), DaysCount = 365 },
-        new Issue { Id = 5, Book = books[4], Reader = readers[4], IssueDate = DateTime.Today.AddDays(5), DaysCount = 10 },
-        new Issue { Id = 6, Book = books[0], Reader = readers[5], IssueDate = new DateTime(2025, 3, 15), DaysCount = 7 },
-        new Issue { Id = 7, Book = books[0], Reader = readers[6], IssueDate = new DateTime(2025, 4, 1), DaysCount = 10 },
-        new Issue { Id = 8, Book = books[5], Reader = readers[0], IssueDate = new DateTime(2025, 5, 2), DaysCount = 14 },
-        new Issue { Id = 9, Book = books[6], Reader = readers[0], IssueDate = new DateTime(2025, 6, 2), DaysCount = 14 },
-        new Issue { Id = 10, Book = books[7], Reader = readers[0], IssueDate = new DateTime(2025, 7, 2), DaysCount = 14 },
-        new Issue { Id = 11, Book = books[12], Reader = readers[1], IssueDate = new DateTime(2025, 8, 1), DaysCount = 2 },
-        new Issue { Id = 12, Book = books[10], Reader = readers[2], IssueDate = new DateTime(2025, 8, 10), DaysCount = 14 },
-        new Issue { Id = 13, Book = books[11], Reader = readers[5], IssueDate = new DateTime(2025, 9, 1), DaysCount = 3 },
-        new Issue { Id = 14, Book = books[13], Reader = readers[6], IssueDate = new DateTime(2025, 9, 10), DaysCount = 10 },
-        new Issue { Id = 15, Book = books[14], Reader = readers[10], IssueDate = new DateTime(2025, 10, 1), DaysCount = 14 },
-        new Issue { Id = 16, Book = books[11], Reader = readers[10], IssueDate = new DateTime(2025, 10, 15), DaysCount = 3 },
-        new Issue { Id = 17, Book = books[13], Reader = readers[11], IssueDate = new DateTime(2025, 11, 1), DaysCount = 14 },
-        new Issue { Id = 18, Book = books[14], Reader = readers[11], IssueDate = new DateTime(2025, 11, 10), DaysCount = 21 },
-        new Issue { Id = 19, Book = books[2], Reader = readers[1], IssueDate = new DateTime(2025, 4, 15), DaysCount = 30 },
-        new Issue { Id = 20, Book = books[5], Reader = readers[2], IssueDate = new DateTime(2025, 6, 1), DaysCount = 14 }
+        new Issue { Id = 1, Book = _books[0], Reader = _readers[0], IssueDate = new DateTime(2025, 1, 10), DaysCount = 14 },
+        new Issue { Id = 2, Book = _books[1], Reader = _readers[1], IssueDate = new DateTime(2025, 2, 5), DaysCount = 21 },
+        new Issue { Id = 3, Book = _books[2], Reader = _readers[2], IssueDate = DateTime.Today, DaysCount = 1 },
+        new Issue { Id = 4, Book = _books[3], Reader = _readers[3], IssueDate = DateTime.Today.AddDays(-400), DaysCount = 365 },
+        new Issue { Id = 5, Book = _books[4], Reader = _readers[4], IssueDate = DateTime.Today.AddDays(5), DaysCount = 10 },
+        new Issue { Id = 6, Book = _books[0], Reader = _readers[5], IssueDate = new DateTime(2025, 3, 15), DaysCount = 7 },
+        new Issue { Id = 7, Book = _books[0], Reader = _readers[6], IssueDate = new DateTime(2025, 4, 1), DaysCount = 10 },
+        new Issue { Id = 8, Book = _books[5], Reader = _readers[0], IssueDate = new DateTime(2025, 5, 2), DaysCount = 14 },
+        new Issue { Id = 9, Book = _books[6], Reader = _readers[0], IssueDate = new DateTime(2025, 6, 2), DaysCount = 14 },
+        new Issue { Id = 10, Book = _books[7], Reader = _readers[0], IssueDate = new DateTime(2025, 7, 2), DaysCount = 14 },
+        new Issue { Id = 11, Book = _books[12], Reader = _readers[1], IssueDate = new DateTime(2025, 8, 1), DaysCount = 2 },
+        new Issue { Id = 12, Book = _books[10], Reader = _readers[2], IssueDate = new DateTime(2025, 8, 10), DaysCount = 14 },
+        new Issue { Id = 13, Book = _books[11], Reader = _readers[5], IssueDate = new DateTime(2025, 9, 1), DaysCount = 3 },
+        new Issue { Id = 14, Book = _books[13], Reader = _readers[6], IssueDate = new DateTime(2025, 9, 10), DaysCount = 10 },
+        new Issue { Id = 15, Book = _books[14], Reader = _readers[10], IssueDate = new DateTime(2025, 10, 1), DaysCount = 14 },
+        new Issue { Id = 16, Book = _books[11], Reader = _readers[10], IssueDate = new DateTime(2025, 10, 15), DaysCount = 3 },
+        new Issue { Id = 17, Book = _books[13], Reader = _readers[11], IssueDate = new DateTime(2025, 11, 1), DaysCount = 14 },
+        new Issue { Id = 18, Book = _books[14], Reader = _readers[11], IssueDate = new DateTime(2025, 11, 10), DaysCount = 21 },
+        new Issue { Id = 19, Book = _books[2], Reader = _readers[1], IssueDate = new DateTime(2025, 4, 15), DaysCount = 30 },
+        new Issue { Id = 20, Book = _books[5], Reader = _readers[2], IssueDate = new DateTime(2025, 6, 1), DaysCount = 14 }
     ];
 }
-    
