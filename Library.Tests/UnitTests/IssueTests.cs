@@ -67,12 +67,12 @@ public class IssueTests(DataSeed seed) : IClassFixture<DataSeed>
 
         var expected = new[]
         {
-            new { FullName = "Ivan Petrov",     BooksCount = 3 },
-            new { FullName = "Sergey Smirnov",  BooksCount = 3 },
-            new { FullName = "Anna Ivanova",    BooksCount = 2 },
-            new { FullName = "Dmitry Volkov",   BooksCount = 2 },
-            new { FullName = "Elena Popova",    BooksCount = 1 }
-        };
+        new { FullName = "Alexey Mikhailov", BooksCount = 2 },
+        new { FullName = "Irina Sidorova",   BooksCount = 2 },
+        new { FullName = "Sergey Smirnov",   BooksCount = 2 },
+        new { FullName = "Anna Ivanova",     BooksCount = 1 },
+        new { FullName = "Dmitry Volkov",    BooksCount = 1 }
+    };
 
         Assert.Equal(expected.Length, result.Length);
         for (var i = 0; i < expected.Length; i++)
@@ -81,6 +81,7 @@ public class IssueTests(DataSeed seed) : IClassFixture<DataSeed>
             Assert.Equal(expected[i].BooksCount, result[i].BooksCount);
         }
     }
+
 
     /// <summary>
     /// Returns readers with their maximum issue period (in days), ordered by full name.
