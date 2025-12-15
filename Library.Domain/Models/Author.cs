@@ -1,29 +1,29 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a book author with initials and last name.
+/// Представляет автора книги с инициалами и фамилией.
 /// </summary>
 public class Author
 {
     /// <summary>
-    /// Primary key.
+    /// Первичный ключ.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the initials of the author (e.g., "L.N.").
-    /// Optional.
+    /// Инициалы автора (например: "Л.Н.").
+    /// Необязательное поле.
     /// </summary>
     public string? Initials { get; set; }
 
     /// <summary>
-    /// Gets or sets the last name of the author (e.g., "Tolstoy").
-    /// Required.
+    /// Фамилия автора (например: "Толстой").
+    /// Обязательное поле.
     /// </summary>
     public required string LastName { get; set; }
 
     /// <summary>
-    /// Navigation property for books written by this author.
+    /// Навигационное свойство для книг, написанных этим автором.
     /// </summary>
     public List<Book> Books { get; set; } = [];
 }

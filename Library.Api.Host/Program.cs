@@ -18,15 +18,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // MongoDB Configuration
-var mongoSettings = builder.Configuration.GetSection("MongoDbSettings");
-var connectionString = mongoSettings.GetValue<string>("ConnectionString")
-    ?? throw new InvalidOperationException("MongoDB ConnectionString is not configured");
-var databaseName = mongoSettings.GetValue<string>("DatabaseName")
-    ?? throw new InvalidOperationException("MongoDB DatabaseName is not configured");
+var mongoConnectionString = builder.Configuration.GetConnectionString("mongodb")
+    ?? "mongodb://localhost:27017";
+var databaseName = "LibraryDb";
 
 // Register MongoDB client and context
-builder.Services.AddSingleton<IMongoClient>(new MongoClient(connectionString));
-builder.Services.AddSingleton(new MongoDbContext(connectionString, databaseName));
+builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnectionString));
+builder.Services.AddSingleton(new MongoDbContext(mongoConnectionString, databaseName));
 
 // Register repositories as scoped
 builder.Services.AddScoped<AuthorMongoRepository>();
