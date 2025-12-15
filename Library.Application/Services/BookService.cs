@@ -70,17 +70,14 @@ public class BookService : IBookService
         }
     }
 
-    private static BookDto MapToDto(Book book)
+    private static BookDto MapToDto(Book book) => new()
     {
-        return new BookDto
-        {
-            Id = book.Id,
-            Title = book.Title,
-            Year = book.Year,
-            AlphabetCode = book.AlphabetCode,
-            BookTypeName = book.BookType.Name,
-            PublisherName = book.Publisher.Name,
-            AuthorNames = book.Authors.Select(a => a.LastName).ToList()
-        };
-    }
+        Id = book.Id,
+        Title = book.Title,
+        Year = book.Year,
+        AlphabetCode = book.AlphabetCode,
+        BookTypeName = book.BookType.Name,
+        PublisherName = book.Publisher.Name,
+        AuthorNames = book.Authors.Select(a => a.LastName).ToList()
+    };
 }
