@@ -5,13 +5,13 @@
 /// </summary>
 public interface IReaderService : IApplicationService
 {
-    Task<ReaderDto?> GetAsync(int id);
+    public Task<ReaderDto?> GetAsync(int id);
 
-    Task<IReadOnlyList<ReaderDto>> GetListAsync();
+    public Task<IReadOnlyList<ReaderDto>> GetListAsync();
 
-    Task<ReaderDto> CreateAsync(ReaderCreateUpdateDto input);
+    public Task<ReaderDto> CreateAsync(ReaderCreateUpdateDto input);
 
-    Task<ReaderDto> UpdateAsync(int id, ReaderCreateUpdateDto input);
+    public Task<ReaderDto> UpdateAsync(int id, ReaderCreateUpdateDto input);
 
-    Task DeleteAsync(int id);
+    public Task DeleteAsync(int id);
 }

@@ -5,13 +5,13 @@
 /// </summary>
 public interface IPublisherService : IApplicationService
 {
-    Task<PublisherDto?> GetAsync(int id);
+    public Task<PublisherDto?> GetAsync(int id);
 
-    Task<IReadOnlyList<PublisherDto>> GetListAsync();
+    public Task<IReadOnlyList<PublisherDto>> GetListAsync();
 
-    Task<PublisherDto> CreateAsync(PublisherCreateUpdateDto input);
+    public Task<PublisherDto> CreateAsync(PublisherCreateUpdateDto input);
 
-    Task<PublisherDto> UpdateAsync(int id, PublisherCreateUpdateDto input);
+    public Task<PublisherDto> UpdateAsync(int id, PublisherCreateUpdateDto input);
 
-    Task DeleteAsync(int id);
+    public Task DeleteAsync(int id);
 }

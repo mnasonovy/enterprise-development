@@ -5,13 +5,13 @@
 /// </summary>
 public interface IIssueService : IApplicationService
 {
-    Task<IssueDto?> GetAsync(int id);
+    public Task<IssueDto?> GetAsync(int id);
 
-    Task<IReadOnlyList<IssueDto>> GetListAsync();
+    public Task<IReadOnlyList<IssueDto>> GetListAsync();
 
-    Task<IssueDto> CreateAsync(IssueCreateUpdateDto input);
+    public Task<IssueDto> CreateAsync(IssueCreateUpdateDto input);
 
-    Task<IssueDto> UpdateAsync(int id, IssueCreateUpdateDto input);
+    public Task<IssueDto> UpdateAsync(int id, IssueCreateUpdateDto input);
 
-    Task DeleteAsync(int id);
+    public Task DeleteAsync(int id);
 }

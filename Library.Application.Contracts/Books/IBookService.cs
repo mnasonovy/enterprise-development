@@ -2,18 +2,11 @@
 
 namespace Library.Application.Contracts.Books;
 
-/// <summary>
-/// Application service contract for working with books.
-/// </summary>
 public interface IBookService : IApplicationService
 {
-    Task<BookDto?> GetAsync(int id);
-
-    Task<IReadOnlyList<BookDto>> GetListAsync();
-
-    Task<BookDto> CreateAsync(BookCreateUpdateDto input);
-
-    Task<BookDto> UpdateAsync(int id, BookCreateUpdateDto input);
-
-    Task DeleteAsync(int id);
+    public Task<BookDto?> GetAsync(int id);
+    public Task<IReadOnlyList<BookDto>> GetListAsync();
+    public Task<BookDto> CreateAsync(BookCreateUpdateDto input);
+    public Task<BookDto> UpdateAsync(int id, BookCreateUpdateDto input);
+    public Task DeleteAsync(int id);
 }
