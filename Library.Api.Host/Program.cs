@@ -1,6 +1,10 @@
 ﻿using Library.Application.Services;
 using Library.Infrastructure.MongoDb.Database;
 using Library.Infrastructure.MongoDb.Repositories;
+using Library.Application.Contracts.Authors;
+using Library.Application.Contracts.Books;
+using Library.Application.Contracts.Readers;
+using Library.Application.Contracts.Issues;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +30,10 @@ builder.Services.AddScoped<ReaderMongoRepository>();
 builder.Services.AddScoped<IssueMongoRepository>();
 
 // Register application services as scoped
-builder.Services.AddScoped<BookService>();
-builder.Services.AddScoped<AuthorService>();
-builder.Services.AddScoped<ReaderService>();
-builder.Services.AddScoped<IssueService>();
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IReaderService, ReaderService>();
+builder.Services.AddScoped<IIssueService, IssueService>();
 
 var app = builder.Build();
 
