@@ -7,6 +7,7 @@ using Library.Application.Contracts.Readers;
 using Library.Application.Contracts.Issues;
 using Library.Application.Contracts.Publishers;
 using Library.Application.Contracts.BookTypes;
+using Library.Application.Contracts.Analytics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,6 +41,7 @@ builder.Services.AddScoped<IReaderService, ReaderService>();
 builder.Services.AddScoped<IIssueService, IssueService>();
 builder.Services.AddScoped<IPublisherService, PublisherService>();
 builder.Services.AddScoped<IBookTypeService, BookTypeService>();
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 var app = builder.Build();
 
