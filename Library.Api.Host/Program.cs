@@ -8,6 +8,7 @@ using Library.Application.Contracts.Issues;
 using Library.Application.Contracts.Publishers;
 using Library.Application.Contracts.BookTypes;
 using Library.Application.Contracts.Analytics;
+using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,20 +24,21 @@ var connectionString = mongoSettings.GetValue<string>("ConnectionString")
 var databaseName = mongoSettings.GetValue<string>("DatabaseName")
     ?? throw new InvalidOperationException("MongoDB DatabaseName is not configured");
 
-// Register MongoDB context as singleton
+// Register MongoDB client and context
+builder.Services.AddSingleton<IMongoClient>(new MongoClient(connectionString));
 builder.Services.AddSingleton(new MongoDbContext(connectionString, databaseName));
 
 // Register repositories as scoped
-builder.Services.AddScoped<BookMongoRepository>();
 builder.Services.AddScoped<AuthorMongoRepository>();
+builder.Services.AddScoped<BookMongoRepository>();
 builder.Services.AddScoped<ReaderMongoRepository>();
 builder.Services.AddScoped<IssueMongoRepository>();
 builder.Services.AddScoped<PublisherMongoRepository>();
 builder.Services.AddScoped<BookTypeMongoRepository>();
 
 // Register application services as scoped
-builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IReaderService, ReaderService>();
 builder.Services.AddScoped<IIssueService, IssueService>();
 builder.Services.AddScoped<IPublisherService, PublisherService>();
