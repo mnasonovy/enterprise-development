@@ -21,4 +21,9 @@ public class Author
     /// Required.
     /// </summary>
     public required string LastName { get; set; }
+
+    /// <summary>
+    /// Navigation property for books written by this author.
+    /// </summary>
+    public List<Book> Books { get; set; } = [];
 }

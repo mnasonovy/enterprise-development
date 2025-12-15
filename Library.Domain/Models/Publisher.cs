@@ -14,4 +14,9 @@ public class Publisher
     /// Gets or sets the name of the publisher (e.g., "Eksmo").
     /// </summary>
     public required string Name { get; set; }
+
+    /// <summary>
+    /// Navigation property for books published by this publisher.
+    /// </summary>
+    public List<Book> Books { get; set; } = [];
 }

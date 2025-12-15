@@ -11,9 +11,19 @@ public class Issue
     public int Id { get; set; }
 
     /// <summary>
+    /// Foreign key to the issued book.
+    /// </summary>
+    public int BookId { get; set; }
+
+    /// <summary>
     /// Gets or sets the book that was issued.
     /// </summary>
     public required Book Book { get; set; }
+
+    /// <summary>
+    /// Foreign key to the reader.
+    /// </summary>
+    public int ReaderId { get; set; }
 
     /// <summary>
     /// Gets or sets the reader who took the book.

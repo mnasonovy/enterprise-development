@@ -14,4 +14,9 @@ public class BookType
     /// Gets or sets the name of the book type (e.g., "Novel", "Textbook").
     /// </summary>
     public required string Name { get; set; }
+
+    /// <summary>
+    /// Navigation property for books of this type.
+    /// </summary>
+    public List<Book> Books { get; set; } = [];
 }

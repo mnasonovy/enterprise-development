@@ -31,4 +31,9 @@ public class Reader
     /// Gets or sets the date when the reader was registered in the library system.
     /// </summary>
     public DateTime RegistrationDate { get; set; }
+
+    /// <summary>
+    /// Navigation property for issues related to this reader.
+    /// </summary>
+    public List<Issue> Issues { get; set; } = [];
 }

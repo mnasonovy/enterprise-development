@@ -26,9 +26,19 @@ public class Book
     public int Year { get; set; }
 
     /// <summary>
+    /// Foreign key to the book type.
+    /// </summary>
+    public int BookTypeId { get; set; }
+
+    /// <summary>
     /// Gets or sets the book type (reference entity).
     /// </summary>
     public required BookType BookType { get; set; }
+
+    /// <summary>
+    /// Foreign key to the publisher.
+    /// </summary>
+    public int PublisherId { get; set; }
 
     /// <summary>
     /// Gets or sets the publisher of the book (reference entity).
