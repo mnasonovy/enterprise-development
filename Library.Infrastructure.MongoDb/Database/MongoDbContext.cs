@@ -17,4 +17,6 @@ public class MongoDbContext
     public IMongoCollection<Author> Authors => _database.GetCollection<Author>("authors");
     public IMongoCollection<Reader> Readers => _database.GetCollection<Reader>("readers");
     public IMongoCollection<Issue> Issues => _database.GetCollection<Issue>("issues");
+    public IMongoCollection<Publisher> Publishers => _database.GetCollection<Publisher>("publishers");
+    public IMongoCollection<BookType> BookTypes => _database.GetCollection<BookType>("booktypes");
 }
