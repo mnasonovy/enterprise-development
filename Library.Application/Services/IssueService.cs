@@ -1,18 +1,26 @@
-﻿using Library.Application.Contracts.Issues;
+﻿namespace Library.Application.Services;
+
+using Library.Application.Contracts.Issues;
+
 using Library.Domain.Models;
-using Library.Infrastructure.MongoDb.Repositories;
 
-namespace Library.Application.Services;
+using Library.Infrastructure.MongoEf.Repositories;
 
+/// <summary>
+/// Сервис для CRUD-операций над проблемами/изданиями
+/// </summary>
 public class IssueService : IIssueService
 {
-    private readonly IssueMongoRepository _issueRepository;
+    private readonly IssueRepository _issueRepository;
 
-    public IssueService(IssueMongoRepository issueRepository)
+    public IssueService(IssueRepository issueRepository)
     {
         _issueRepository = issueRepository;
     }
 
+    /// <summary>
+    /// Получить проблему по идентификатору
+    /// </summary>
     public async Task<IssueDto?> GetAsync(int id)
     {
         var issue = await _issueRepository.ReadAsync(id);
@@ -21,12 +29,18 @@ public class IssueService : IIssueService
             : MapToDto(issue);
     }
 
+    /// <summary>
+    /// Получить список всех проблем
+    /// </summary>
     public async Task<IReadOnlyList<IssueDto>> GetListAsync()
     {
         var issues = await _issueRepository.ReadAllAsync();
-        return issues.Select(MapToDto).ToArray();
+        return issues.Select(MapToDto).ToList().AsReadOnly();
     }
 
+    /// <summary>
+    /// Создать новую проблему
+    /// </summary>
     public async Task<IssueDto> CreateAsync(IssueCreateUpdateDto input)
     {
         var issue = new Issue
@@ -41,10 +55,13 @@ public class IssueService : IIssueService
         return MapToDto(created);
     }
 
+    /// <summary>
+    /// Обновить существующую проблему
+    /// </summary>
     public async Task<IssueDto> UpdateAsync(int id, IssueCreateUpdateDto input)
     {
         var existing = await _issueRepository.ReadAsync(id)
-                       ?? throw new InvalidOperationException($"Issue with id {id} was not found.");
+            ?? throw new InvalidOperationException($"Issue with id {id} was not found.");
 
         existing.Book = new Book { Id = input.BookId, Title = string.Empty, Year = 0, AlphabetCode = null!, BookType = null!, Publisher = null!, Authors = new() };
         existing.Reader = new Reader { Id = input.ReaderId, FullName = string.Empty, RegistrationDate = input.IssueDate };
@@ -52,11 +69,14 @@ public class IssueService : IIssueService
         existing.DaysCount = input.DaysCount;
 
         var updated = await _issueRepository.UpdateAsync(existing)
-                      ?? throw new InvalidOperationException($"Issue with id {id} was not updated.");
+            ?? throw new InvalidOperationException($"Issue with id {id} was not updated.");
 
         return MapToDto(updated);
     }
 
+    /// <summary>
+    /// Удалить проблему по идентификатору
+    /// </summary>
     public async Task DeleteAsync(int id)
     {
         var deleted = await _issueRepository.DeleteAsync(id);
@@ -65,6 +85,10 @@ public class IssueService : IIssueService
             throw new InvalidOperationException($"Issue with id {id} was not deleted.");
         }
     }
+
+    /// <summary>
+    /// Преобразовать Domain модель проблемы в DTO
+    /// </summary>
     private static IssueDto MapToDto(Issue issue)
     {
         return new IssueDto

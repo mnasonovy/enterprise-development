@@ -1,18 +1,26 @@
-﻿using Library.Application.Contracts.Readers;
+﻿namespace Library.Application.Services;
+
+using Library.Application.Contracts.Readers;
+
 using Library.Domain.Models;
-using Library.Infrastructure.MongoDb.Repositories;
 
-namespace Library.Application.Services;
+using Library.Infrastructure.MongoEf.Repositories;
 
+/// <summary>
+/// Сервис для CRUD-операций над читателями
+/// </summary>
 public class ReaderService : IReaderService
 {
-    private readonly ReaderMongoRepository _readerRepository;
+    private readonly ReaderRepository _readerRepository;
 
-    public ReaderService(ReaderMongoRepository readerRepository)
+    public ReaderService(ReaderRepository readerRepository)
     {
         _readerRepository = readerRepository;
     }
 
+    /// <summary>
+    /// Получить читателя по идентификатору
+    /// </summary>
     public async Task<ReaderDto?> GetAsync(int id)
     {
         var reader = await _readerRepository.ReadAsync(id);
@@ -21,12 +29,18 @@ public class ReaderService : IReaderService
             : MapToDto(reader);
     }
 
+    /// <summary>
+    /// Получить список всех читателей
+    /// </summary>
     public async Task<IReadOnlyList<ReaderDto>> GetListAsync()
     {
         var readers = await _readerRepository.ReadAllAsync();
-        return readers.Select(MapToDto).ToArray();
+        return readers.Select(MapToDto).ToList().AsReadOnly();
     }
 
+    /// <summary>
+    /// Создать нового читателя
+    /// </summary>
     public async Task<ReaderDto> CreateAsync(ReaderCreateUpdateDto input)
     {
         var reader = new Reader
@@ -41,10 +55,13 @@ public class ReaderService : IReaderService
         return MapToDto(created);
     }
 
+    /// <summary>
+    /// Обновить существующего читателя
+    /// </summary>
     public async Task<ReaderDto> UpdateAsync(int id, ReaderCreateUpdateDto input)
     {
         var existing = await _readerRepository.ReadAsync(id)
-                       ?? throw new InvalidOperationException($"Reader with id {id} was not found.");
+            ?? throw new InvalidOperationException($"Reader with id {id} was not found.");
 
         existing.FullName = input.FullName;
         existing.Address = input.Address;
@@ -52,11 +69,14 @@ public class ReaderService : IReaderService
         existing.RegistrationDate = input.RegistrationDate;
 
         var updated = await _readerRepository.UpdateAsync(existing)
-                      ?? throw new InvalidOperationException($"Reader with id {id} was not updated.");
+            ?? throw new InvalidOperationException($"Reader with id {id} was not updated.");
 
         return MapToDto(updated);
     }
 
+    /// <summary>
+    /// Удалить читателя по идентификатору
+    /// </summary>
     public async Task DeleteAsync(int id)
     {
         var deleted = await _readerRepository.DeleteAsync(id);
@@ -66,6 +86,9 @@ public class ReaderService : IReaderService
         }
     }
 
+    /// <summary>
+    /// Преобразовать Domain модель читателя в DTO
+    /// </summary>
     private static ReaderDto MapToDto(Reader reader) => new()
     {
         Id = reader.Id,

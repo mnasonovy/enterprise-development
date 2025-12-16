@@ -1,18 +1,26 @@
-﻿using Library.Application.Contracts.BookTypes;
+﻿namespace Library.Application.Services;
+
+using Library.Application.Contracts.BookTypes;
+
 using Library.Domain.Models;
-using Library.Infrastructure.MongoDb.Repositories;
 
-namespace Library.Application.Services;
+using Library.Infrastructure.MongoEf.Repositories;
 
+/// <summary>
+/// Сервис для CRUD-операций над типами книг
+/// </summary>
 public class BookTypeService : IBookTypeService
 {
-    private readonly BookTypeMongoRepository _bookTypeRepository;
+    private readonly BookTypeRepository _bookTypeRepository;
 
-    public BookTypeService(BookTypeMongoRepository bookTypeRepository)
+    public BookTypeService(BookTypeRepository bookTypeRepository)
     {
         _bookTypeRepository = bookTypeRepository;
     }
 
+    /// <summary>
+    /// Получить тип книги по идентификатору
+    /// </summary>
     public async Task<BookTypeDto?> GetAsync(int id)
     {
         var bookType = await _bookTypeRepository.ReadAsync(id);
@@ -21,12 +29,18 @@ public class BookTypeService : IBookTypeService
             : MapToDto(bookType);
     }
 
+    /// <summary>
+    /// Получить список всех типов книг
+    /// </summary>
     public async Task<IReadOnlyList<BookTypeDto>> GetListAsync()
     {
         var bookTypes = await _bookTypeRepository.ReadAllAsync();
-        return bookTypes.Select(MapToDto).ToArray();
+        return bookTypes.Select(MapToDto).ToList().AsReadOnly();
     }
 
+    /// <summary>
+    /// Создать новый тип книги
+    /// </summary>
     public async Task<BookTypeDto> CreateAsync(BookTypeCreateUpdateDto input)
     {
         var bookType = new BookType
@@ -38,6 +52,9 @@ public class BookTypeService : IBookTypeService
         return MapToDto(created);
     }
 
+    /// <summary>
+    /// Обновить существующий тип книги
+    /// </summary>
     public async Task<BookTypeDto> UpdateAsync(int id, BookTypeCreateUpdateDto input)
     {
         var existing = await _bookTypeRepository.ReadAsync(id)
@@ -51,6 +68,9 @@ public class BookTypeService : IBookTypeService
         return MapToDto(updated);
     }
 
+    /// <summary>
+    /// Удалить тип книги по идентификатору
+    /// </summary>
     public async Task DeleteAsync(int id)
     {
         var deleted = await _bookTypeRepository.DeleteAsync(id);
@@ -60,6 +80,9 @@ public class BookTypeService : IBookTypeService
         }
     }
 
+    /// <summary>
+    /// Преобразовать Domain модель типа книги в DTO
+    /// </summary>
     private static BookTypeDto MapToDto(BookType bookType) => new()
     {
         Id = bookType.Id,
