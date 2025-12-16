@@ -1,14 +1,8 @@
-﻿using Library.Application.Services;
-using Library.Infrastructure.MongoDb.Database;
-using Library.Infrastructure.MongoDb.Repositories;
-using Library.Application.Contracts.Authors;
-using Library.Application.Contracts.Books;
-using Library.Application.Contracts.Readers;
-using Library.Application.Contracts.Issues;
-using Library.Application.Contracts.Publishers;
-using Library.Application.Contracts.BookTypes;
-using Library.Application.Contracts.Analytics;
-using MongoDB.Driver;
+﻿using Library.Application.Contracts.Authors;
+using Library.Application.Services;
+using Library.Infrastructure.MongoEf.Database;
+using Library.Infrastructure.MongoEf.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,31 +11,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// MongoDB Configuration
-var mongoConnectionString = builder.Configuration.GetConnectionString("mongodb")
-    ?? "mongodb://localhost:27017";
-var databaseName = "LibraryDb";
+// MongoDB EF Core configuration
+var mongoConnectionString = builder.Configuration.GetConnectionString("mongodb");
 
-// Register MongoDB client and context
-builder.Services.AddSingleton<IMongoClient>(new MongoClient(mongoConnectionString));
-builder.Services.AddSingleton(new MongoDbContext(mongoConnectionString, databaseName));
+if (string.IsNullOrEmpty(mongoConnectionString))
+    throw new InvalidOperationException("MongoDB connection string is not configured");
 
-// Register repositories as scoped
-builder.Services.AddScoped<AuthorMongoRepository>();
-builder.Services.AddScoped<BookMongoRepository>();
-builder.Services.AddScoped<ReaderMongoRepository>();
-builder.Services.AddScoped<IssueMongoRepository>();
-builder.Services.AddScoped<PublisherMongoRepository>();
-builder.Services.AddScoped<BookTypeMongoRepository>();
+Console.WriteLine($"[DEBUG] MongoDB connection string: {mongoConnectionString}");
 
-// Register application services as scoped
+// регистрируем контекст MongoEF
+builder.Services.AddDbContext<MongoDbContext>(options =>
+    options.UseMongoDB(mongoConnectionString, "library"));
+
+// регистрируем авторский репозиторий и сервис
+builder.Services.AddScoped<AuthorRepository>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
-builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IReaderService, ReaderService>();
-builder.Services.AddScoped<IIssueService, IssueService>();
-builder.Services.AddScoped<IPublisherService, PublisherService>();
-builder.Services.AddScoped<IBookTypeService, BookTypeService>();
-builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 var app = builder.Build();
 
@@ -53,7 +37,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

@@ -2,7 +2,7 @@
 
 using Library.Application.Contracts.Authors;
 using Library.Domain.Models;
-using Library.Infrastructure.MongoDb.Repositories;
+using Library.Infrastructure.MongoEf.Repositories; // было MongoDb.Repositories
 
 /// <summary>
 /// Сервис для CRUD-операций над авторами
@@ -10,13 +10,13 @@ using Library.Infrastructure.MongoDb.Repositories;
 /// </summary>
 public class AuthorService : IAuthorService
 {
-    private readonly AuthorMongoRepository _authorRepository;
+    private readonly AuthorRepository _authorRepository; // было AuthorMongoRepository
 
     /// <summary>
     /// Инициализирует новый экземпляр сервиса авторов
     /// </summary>
-    /// <param name="authorRepository">Репозиторий для работы с MongoDB</param>
-    public AuthorService(AuthorMongoRepository authorRepository)
+    /// <param name="authorRepository">Репозиторий для работы с MongoDB через EF Core</param>
+    public AuthorService(AuthorRepository authorRepository) // было AuthorMongoRepository
     {
         _authorRepository = authorRepository;
     }

@@ -7,9 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Library.Application.Contracts\Library.Application.Contracts.csproj" />
+    <PackageReference Include="MongoDB.EntityFrameworkCore" Version="9.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Library.Domain\Library.Domain.csproj" />
-    <ProjectReference Include="..\Library.Infrastructure.MongoEf\Library.Infrastructure.MongoEf.csproj" />
   </ItemGroup>
 
 </Project>
