@@ -6,12 +6,12 @@ var builder = DistributedApplication.CreateBuilder(args);
 var mongo = builder.AddMongoDB("mongodb")
     .WithMongoExpress();
 
-// Явно описываем базу
-var mongodb = mongo.AddDatabase("library");
+// База данных Library
+var mongoDb = mongo.AddDatabase("library");
 
-// API сервис — ВАЖНО: указать тип проекта
-var api = builder.AddProject<Projects.Library_Api_Host>("api")
-    .WithReference(mongodb) // пробрасывает строку подключения в API
-    .WaitFor(mongodb);
+// API сервис с привязкой к базе
+var api = builder.AddProject<Library_Api_Host>("api")
+    .WithReference(mongoDb)
+    .WaitFor(mongo);
 
 builder.Build().Run();
