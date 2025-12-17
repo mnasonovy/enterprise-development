@@ -28,7 +28,7 @@ public class BookTypeRepository
 
     /// <summary>
     /// Получить тип книги по идентификатору.
-    /// Загружает данные типа вместе со связанными книгами через Include.
+    /// MongoDB EF Core не поддерживает Include, поэтому загружаем только сам тип.
     /// </summary>
     /// <param name="id">Уникальный идентификатор типа книги</param>
     /// <returns>Объект BookType или null если тип не найден</returns>
@@ -36,22 +36,19 @@ public class BookTypeRepository
     {
         return await _bookTypes
             .AsNoTracking()
-            .Include(bt => bt.Books)
             .FirstOrDefaultAsync(bt => bt.Id == id);
     }
 
     /// <summary>
     /// Получить список всех типов книг из базы данных.
-    /// Загружает все типы с их связанными книгами через Include.
+    /// MongoDB EF Core не поддерживает Include, поэтому загружаем только типы без навигаций.
     /// </summary>
     /// <returns>Неизменяемый список всех типов книг</returns>
     public async Task<IReadOnlyList<BookType>> ReadAllAsync()
     {
         var result = await _bookTypes
             .AsNoTracking()
-            .Include(bt => bt.Books)
             .ToListAsync();
-
         return result.AsReadOnly();
     }
 

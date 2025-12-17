@@ -52,11 +52,16 @@ public class BookTypeService : IBookTypeService
     /// <summary>
     /// Создать новый тип книги.
     /// Преобразует DTO в сущность, сохраняет в БД и возвращает созданный DTO.
+    /// ID должен быть установлен вручную в DTO.
     /// </summary>
-    /// <param name="input">DTO с данными нового типа (Name)</param>
+    /// <param name="input">DTO с данными нового типа (Name и Id обязательны)</param>
     /// <returns>BookTypeDto созданного типа с заполненным Id</returns>
+    /// <exception cref="ArgumentException">Выбрасывается если ID не установлен или <= 0</exception>
     public async Task<BookTypeDto> CreateAsync(BookTypeCreateUpdateDto input)
     {
+        if (input.Id <= 0)
+            throw new ArgumentException("ID должен быть установлен вручную и быть больше 0", nameof(input.Id));
+
         var bookType = _mapper.Map<BookType>(input);
         var created = await _bookTypeRepository.CreateAsync(bookType);
         return _mapper.Map<BookTypeDto>(created);
@@ -84,7 +89,6 @@ public class BookTypeService : IBookTypeService
     /// Удалить тип книги по идентификатору.
     /// </summary>
     /// <param name="id">Уникальный идентификатор типа для удаления</param>
-    /// <returns>Асинхронная задача удаления</returns>
     public async Task DeleteAsync(int id)
     {
         await _bookTypeRepository.DeleteAsync(id);

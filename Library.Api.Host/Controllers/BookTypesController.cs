@@ -51,7 +51,6 @@ public class BookTypesController(
         logger.LogInformation("{Method} method is called with id = {Id}", nameof(GetAsync), id);
         if (id <= 0)
             return BadRequest("Id must be greater than 0");
-
         var result = await bookTypeService.GetAsync(id);
         logger.LogInformation("{Method} method executed successfully", nameof(GetAsync));
         return result != null ? Ok(result) : NotFound();
@@ -61,10 +60,11 @@ public class BookTypesController(
     /// Создать новый тип книги в системе.
     /// HTTP POST: /api/booktypes
     /// Требует валидное имя типа (не пусто и не только пробелы).
+    /// ID должен быть установлен вручную и быть больше 0.
     /// Возвращает 201 Created с заполненными данными и ID.
     /// </summary>
-    /// <param name="input">DTO с данными нового типа (Name обязателен)</param>
-    /// <returns>CreatedAtAction с BookTypeDto и его ID</returns>
+    /// <param name="input">DTO с данными нового типа (Name и Id обязательны)</param>
+    /// <returns>Created с BookTypeDto и его ID</returns>
     [HttpPost]
     [ProducesResponseType(201, Type = typeof(BookTypeDto))]
     [ProducesResponseType(400)]
@@ -72,19 +72,30 @@ public class BookTypesController(
     public async Task<IActionResult> CreateAsync([FromBody] BookTypeCreateUpdateDto input)
     {
         logger.LogInformation("{Method} method is called", nameof(CreateAsync));
+
         if (input == null)
             return BadRequest("BookType data is required");
+
+        if (input.Id <= 0)
+            return BadRequest("BookType ID must be set manually and be greater than 0");
 
         if (string.IsNullOrWhiteSpace(input.Name))
             return BadRequest("BookType name is required");
 
-        var result = await bookTypeService.CreateAsync(input);
-        logger.LogInformation("{Method} method executed successfully with id = {Id}",
-            nameof(CreateAsync), result.Id);
-        return CreatedAtAction(
-            nameof(GetAsync),
-            new { id = result.Id },
-            result);
+        try
+        {
+            var result = await bookTypeService.CreateAsync(input);
+
+            logger.LogInformation("{Method} method executed successfully with id = {Id}",
+                nameof(CreateAsync), result.Id);
+
+            return Created($"/api/booktypes/{result.Id}", result);
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogError("Error creating BookType: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>
@@ -104,6 +115,7 @@ public class BookTypesController(
     public async Task<IActionResult> UpdateAsync(int id, [FromBody] BookTypeCreateUpdateDto input)
     {
         logger.LogInformation("{Method} method is called with id = {Id}", nameof(UpdateAsync), id);
+
         if (id <= 0)
             return BadRequest("Id must be greater than 0");
 
@@ -113,9 +125,19 @@ public class BookTypesController(
         if (string.IsNullOrWhiteSpace(input.Name))
             return BadRequest("BookType name is required");
 
-        var result = await bookTypeService.UpdateAsync(id, input);
-        logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
-        return result != null ? Ok(result) : NotFound();
+        try
+        {
+            var result = await bookTypeService.UpdateAsync(id, input);
+
+            logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
+
+            return result != null ? Ok(result) : NotFound();
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogError("Error updating BookType: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>
@@ -132,11 +154,22 @@ public class BookTypesController(
     public async Task<IActionResult> DeleteAsync(int id)
     {
         logger.LogInformation("{Method} method is called with id = {Id}", nameof(DeleteAsync), id);
+
         if (id <= 0)
             return BadRequest("Id must be greater than 0");
 
-        await bookTypeService.DeleteAsync(id);
-        logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
-        return NoContent();
+        try
+        {
+            await bookTypeService.DeleteAsync(id);
+
+            logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
+
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogError("Error deleting BookType: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 }
