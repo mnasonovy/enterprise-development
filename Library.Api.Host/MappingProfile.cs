@@ -10,7 +10,8 @@ using Library.Domain.Models;
 namespace Library.Api.Host;
 
 /// <summary>
-/// AutoMapper профиль для конфигурации всех маппингов DTO ↔ Entity
+/// AutoMapper профиль для конфигурации всех маппингов между DTO и Domain моделями.
+/// Определяет двусторонние маппинги для всех сущностей системы.
 /// </summary>
 public class MappingProfile : Profile
 {
@@ -19,36 +20,42 @@ public class MappingProfile : Profile
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Author Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        CreateMap<AuthorDto, Author>().ReverseMap();
+
+        CreateMap<Author, AuthorDto>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Book Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        CreateMap<BookDto, Book>().ReverseMap();
-        CreateMap<BookCreateUpdateDto, Book>().ReverseMap();
+
+        CreateMap<Book, BookDto>().ReverseMap();
+        CreateMap<Book, BookCreateUpdateDto>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // BookType Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        CreateMap<BookTypeDto, BookType>().ReverseMap();
-        CreateMap<BookTypeCreateUpdateDto, BookType>().ReverseMap();
+
+        CreateMap<BookType, BookTypeDto>().ReverseMap();
+        CreateMap<BookType, BookTypeCreateUpdateDto>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Issue Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        CreateMap<IssueDto, Issue>().ReverseMap();
-        CreateMap<IssueCreateUpdateDto, Issue>().ReverseMap();
+
+        CreateMap<Issue, IssueDto>().ReverseMap();
+        CreateMap<Issue, IssueCreateUpdateDto>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Publisher Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        CreateMap<PublisherDto, Publisher>().ReverseMap();
-        CreateMap<PublisherCreateUpdateDto, Publisher>().ReverseMap();
+
+        CreateMap<Publisher, PublisherDto>().ReverseMap();
+        CreateMap<Publisher, PublisherCreateUpdateDto>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Reader Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        CreateMap<ReaderDto, Reader>().ReverseMap();
-        CreateMap<ReaderCreateUpdateDto, Reader>().ReverseMap();
+
+        CreateMap<Reader, ReaderDto>().ReverseMap();
+        CreateMap<Reader, ReaderCreateUpdateDto>().ReverseMap();
     }
 }

@@ -6,13 +6,12 @@ namespace Library.Infrastructure.MongoEf.Database;
 
 /// <summary>
 /// MongoDB EF Core контекст для работы с LibraryDb.
-/// Предоставляет DbSet для всех сущностей и конфигурирует отношения.
-/// 🔧 ФИНАЛЬНАЯ ВЕРСИЯ: Синхронизирована с исправленными репозиториями!
+/// Предоставляет DbSet для всех сущностей и конфигурирует отношения между ними.
 /// </summary>
 public class MongoDbContext : DbContext
 {
     /// <summary>
-    /// Инициализирует новый экземпляр MongoDbContext.
+    /// Инициализирует новый экземпляр MongoDbContext с переданными параметрами.
     /// </summary>
     public MongoDbContext(DbContextOptions<MongoDbContext> options)
         : base(options)
@@ -35,7 +34,7 @@ public class MongoDbContext : DbContext
     public DbSet<Reader> Readers { get; set; } = null!;
 
     /// <summary>
-    /// DbSet для работы с выданными книгами (выдачи/issues).
+    /// DbSet для работы с выданными книгами (выдачи).
     /// </summary>
     public DbSet<Issue> Issues { get; set; } = null!;
 
@@ -51,7 +50,7 @@ public class MongoDbContext : DbContext
 
     /// <summary>
     /// Конфигурация модели данных для MongoDB.
-    /// 🔧 ФИНАЛЬНАЯ: Полная конфигурация отношений для всех репозиториев!
+    /// Определяет коллекции, первичные ключи и отношения между сущностями.
     /// </summary>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +59,7 @@ public class MongoDbContext : DbContext
         // ════════════════════════════════════════════════════════════════
         // КОЛЛЕКЦИИ MONGODB - Имена коллекций в нижнем регистре
         // ════════════════════════════════════════════════════════════════
+
         modelBuilder.Entity<Book>().ToCollection("books");
         modelBuilder.Entity<Author>().ToCollection("authors");
         modelBuilder.Entity<Reader>().ToCollection("readers");
@@ -70,6 +70,7 @@ public class MongoDbContext : DbContext
         // ════════════════════════════════════════════════════════════════
         // КОНФИГУРАЦИЯ: BOOK (Главная сущность)
         // ════════════════════════════════════════════════════════════════
+
         modelBuilder.Entity<Book>()
             .HasKey(b => b.Id);
 
@@ -88,7 +89,6 @@ public class MongoDbContext : DbContext
             .IsRequired();
 
         // Book (1) ──→ (М) Issue
-        // 🔧 КРИТИЧНО: Обратная связь для IssueRepository!
         modelBuilder.Entity<Book>()
             .HasMany(b => b.Issues)
             .WithOne(i => i.Book)
@@ -96,7 +96,6 @@ public class MongoDbContext : DbContext
             .IsRequired();
 
         // Book ↔ (М-М) Author (многие-ко-многим)
-        // 🔧 КРИТИЧНО: Для BookRepository Include(b => b.Authors)!
         modelBuilder.Entity<Book>()
             .HasMany(b => b.Authors)
             .WithMany(a => a.Books)
@@ -109,17 +108,18 @@ public class MongoDbContext : DbContext
         // ════════════════════════════════════════════════════════════════
         // КОНФИГУРАЦИЯ: AUTHOR
         // ════════════════════════════════════════════════════════════════
+
         modelBuilder.Entity<Author>()
             .HasKey(a => a.Id);
 
         // ════════════════════════════════════════════════════════════════
         // КОНФИГУРАЦИЯ: READER (Читатель библиотеки)
         // ════════════════════════════════════════════════════════════════
+
         modelBuilder.Entity<Reader>()
             .HasKey(r => r.Id);
 
         // Reader (1) ──→ (М) Issue
-        // 🔧 КРИТИЧНО: Обратная связь для ReaderRepository!
         modelBuilder.Entity<Reader>()
             .HasMany(r => r.Issues)
             .WithOne(i => i.Reader)
@@ -129,11 +129,11 @@ public class MongoDbContext : DbContext
         // ════════════════════════════════════════════════════════════════
         // КОНФИГУРАЦИЯ: ISSUE (ВЫДАЧА КНИГИ)
         // ════════════════════════════════════════════════════════════════
+
         modelBuilder.Entity<Issue>()
             .HasKey(i => i.Id);
 
         // Issue (М) ──→ (1) Book
-        // 🔧 КРИТИЧНО: Для IssueRepository Include(i => i.Book)!
         modelBuilder.Entity<Issue>()
             .HasOne(i => i.Book)
             .WithMany(b => b.Issues)
@@ -142,7 +142,6 @@ public class MongoDbContext : DbContext
             .OnDelete(DeleteBehavior.Restrict);
 
         // Issue (М) ──→ (1) Reader
-        // 🔧 КРИТИЧНО: Для IssueRepository Include(i => i.Reader)!
         modelBuilder.Entity<Issue>()
             .HasOne(i => i.Reader)
             .WithMany(r => r.Issues)
@@ -153,11 +152,11 @@ public class MongoDbContext : DbContext
         // ════════════════════════════════════════════════════════════════
         // КОНФИГУРАЦИЯ: PUBLISHER (Издатель)
         // ════════════════════════════════════════════════════════════════
+
         modelBuilder.Entity<Publisher>()
             .HasKey(p => p.Id);
 
         // Publisher (1) ──→ (М) Book
-        // 🔧 КРИТИЧНО: Для PublisherRepository Include(p => p.Books)!
         modelBuilder.Entity<Publisher>()
             .HasMany(p => p.Books)
             .WithOne(b => b.Publisher)
@@ -167,11 +166,11 @@ public class MongoDbContext : DbContext
         // ════════════════════════════════════════════════════════════════
         // КОНФИГУРАЦИЯ: BOOKTYPE (Тип книги)
         // ════════════════════════════════════════════════════════════════
+
         modelBuilder.Entity<BookType>()
             .HasKey(bt => bt.Id);
 
         // BookType (1) ──→ (М) Book
-        // 🔧 КРИТИЧНО: Для BookTypeRepository Include(bt => bt.Books)!
         modelBuilder.Entity<BookType>()
             .HasMany(bt => bt.Books)
             .WithOne(b => b.BookType)

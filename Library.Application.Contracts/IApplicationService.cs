@@ -1,8 +1,8 @@
 ﻿namespace Library.Application.Contracts;
 
 /// <summary>
-/// Marker interface for application services.
-/// All application service contracts should implement this interface.
+/// Маркер-интерфейс для всех сервисов приложения.
+/// Все контракты сервисов приложения должны наследоваться от этого интерфейса.
 /// </summary>
 public interface IApplicationService
 {

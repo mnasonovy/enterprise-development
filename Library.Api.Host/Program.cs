@@ -15,8 +15,9 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 1️⃣ Logging Configuration
+// 1️ Logging Configuration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 builder.Services.AddLogging(configure =>
 {
     configure.ClearProviders();
@@ -25,18 +26,18 @@ builder.Services.AddLogging(configure =>
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 2️⃣ MongoDB EF Core DbContext Registration
+// 2️ MongoDB EF Core DbContext Registration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 var mongoConnectionString = builder.Configuration.GetConnectionString("mongodb")
     ?? "mongodb://localhost:27017";
-
 builder.Services.AddDbContext<MongoDbContext>(options =>
     options.UseMongoDB(mongoConnectionString, "LibraryDb"));
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 3️⃣ AutoMapper Registration
+// 3️ AutoMapper Registration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// ✅ Добавлен MappingProfile из текущей сборки
+
 builder.Services.AddAutoMapper(config =>
 {
     config.AddProfile<MappingProfile>();
@@ -44,34 +45,38 @@ builder.Services.AddAutoMapper(config =>
 });
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 4️⃣ Repository Registration
+// 4️ Repository Registration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-builder.Services.AddScoped<AuthorRepository>();
+
 builder.Services.AddScoped<BookRepository>();
-builder.Services.AddScoped<BookTypeRepository>();
+builder.Services.AddScoped<AuthorRepository>();
+builder.Services.AddScoped<ReaderRepository>();
 builder.Services.AddScoped<IssueRepository>();
 builder.Services.AddScoped<PublisherRepository>();
-builder.Services.AddScoped<ReaderRepository>();
+builder.Services.AddScoped<BookTypeRepository>();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 5️⃣ Application Services Registration
+// 5️ Application Services Registration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-builder.Services.AddScoped<IAuthorService, AuthorService>();
+
 builder.Services.AddScoped<IBookService, BookService>();
-builder.Services.AddScoped<IBookTypeService, BookTypeService>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IReaderService, ReaderService>();
 builder.Services.AddScoped<IIssueService, IssueService>();
 builder.Services.AddScoped<IPublisherService, PublisherService>();
-builder.Services.AddScoped<IReaderService, ReaderService>();
+builder.Services.AddScoped<IBookTypeService, BookTypeService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 6️⃣ MVC + Controllers
+// 6️ MVC + Controllers
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 builder.Services.AddControllers();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 7️⃣ Swagger/OpenAPI Configuration
+// 7️ Swagger/OpenAPI Configuration
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
@@ -92,16 +97,16 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(xmlFile);
     }
 });
-
 builder.Services.AddEndpointsApiExplorer();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 8️⃣ Build Application
+// 8️ Build Application
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 var app = builder.Build();
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-// 9️⃣ Configure Middleware Pipeline
+// 9️ Configure Middleware Pipeline
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 // Swagger UI (Development)
@@ -127,4 +132,5 @@ app.MapControllers();
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // 🔟 Run Application
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 app.Run();
