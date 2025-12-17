@@ -8,8 +8,7 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
 /// Репозиторий для работы с выданными книгами (Issue) через MongoDB EF Core.
-/// Заменяет старый MongoDBDriver подход на современный EF Core.
-/// 🔧 ИСПРАВЛЕНО: Используются РЕАЛЬНЫЕ свойства Issue!
+/// Предоставляет методы для выполнения CRUD операций над сущностью Issue.
 /// </summary>
 public class IssueRepository
 {
@@ -24,8 +23,9 @@ public class IssueRepository
 
     /// <summary>
     /// Получить выданную книгу по идентификатору.
-    /// 🔧 Include для Book и Reader (ОБЯЗАТЕЛЬНО!)
     /// </summary>
+    /// <param name="id">Уникальный идентификатор выдачи</param>
+    /// <returns>Сущность Issue если найдена; null если запись не существует</returns>
     public async Task<Issue?> ReadAsync(int id)
     {
         return await _issues
@@ -37,8 +37,8 @@ public class IssueRepository
 
     /// <summary>
     /// Получить список всех выданных книг из базы данных.
-    /// 🔧 Include для Book и Reader (ОБЯЗАТЕЛЬНО!)
     /// </summary>
+    /// <returns>Неизменяемый список всех выданных книг с загруженными Book и Reader</returns>
     public async Task<IReadOnlyList<Issue>> ReadAllAsync()
     {
         var result = await _issues
@@ -46,13 +46,14 @@ public class IssueRepository
             .Include(i => i.Book)
             .Include(i => i.Reader)
             .ToListAsync();
-
         return result.AsReadOnly();
     }
 
     /// <summary>
     /// Создать новую выданную книгу в базе данных.
     /// </summary>
+    /// <param name="entity">Сущность Issue для сохранения</param>
+    /// <returns>Созданная сущность Issue с заполненным идентификатором</returns>
     public async Task<Issue> CreateAsync(Issue entity)
     {
         await _issues.AddAsync(entity);
@@ -63,6 +64,8 @@ public class IssueRepository
     /// <summary>
     /// Удалить выданную книгу из базы данных по идентификатору.
     /// </summary>
+    /// <param name="id">Уникальный идентификатор выдачи для удаления</param>
+    /// <returns>true если выданная книга успешно удалена; false если запись не найдена</returns>
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _issues.FirstOrDefaultAsync(i => i.Id == id);
@@ -76,8 +79,9 @@ public class IssueRepository
 
     /// <summary>
     /// Обновить данные существующей выданной книги.
-    /// 🔧 ИСПРАВЛЕНО: Используются РЕАЛЬНЫЕ свойства IssueDate и ReturnDate!
     /// </summary>
+    /// <param name="entity">Сущность Issue с обновленными данными</param>
+    /// <returns>Обновленная сущность Issue; null если запись не найдена</returns>
     public async Task<Issue?> UpdateAsync(Issue entity)
     {
         // Загружаем существующую Issue с Book и Reader
@@ -85,14 +89,13 @@ public class IssueRepository
             .Include(i => i.Book)
             .Include(i => i.Reader)
             .FirstOrDefaultAsync(i => i.Id == entity.Id);
-
         if (existing is null)
             return null;
 
-        // 🔧 Обновляем РЕАЛЬНЫЕ свойства
-        existing.IssueDate = entity.IssueDate;    // ✅ Правильно
+        // Обновляем свойства
+        existing.IssueDate = entity.IssueDate;
         existing.DaysCount = entity.DaysCount;
-        existing.ReturnDate = entity.ReturnDate;  // ✅ Правильно
+        existing.ReturnDate = entity.ReturnDate;
         existing.BookId = entity.BookId;
         existing.ReaderId = entity.ReaderId;
 

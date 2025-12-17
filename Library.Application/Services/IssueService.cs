@@ -6,8 +6,9 @@ using Library.Infrastructure.MongoEf.Repositories;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для CRUD-операций над выданными книгами (Issue).
-/// 🔧 ИСПРАВЛЕНО: AutoMapper + правильная работа с FK!
+/// Сервис для управления выданными книгами (Issue).
+/// Реализует интерфейс IIssueService, обеспечивая выполнение CRUD операций над выданными книгами.
+/// Использует AutoMapper для преобразования между Domain моделями и DTO.
 /// </summary>
 public class IssueService : IIssueService
 {
@@ -21,9 +22,10 @@ public class IssueService : IIssueService
     }
 
     /// <summary>
-    /// Получить выданную книгу по идентификатору.
-    /// 🔧 Include загружает Book и Reader!
+    /// Получает выданную книгу по уникальному идентификатору.
     /// </summary>
+    /// <param name="id">Идентификатор выдачи для поиска.</param>
+    /// <returns>DTO выдачи, если найдена; null если запись не существует.</returns>
     public async Task<IssueDto?> GetAsync(int id)
     {
         var issue = await _issueRepository.ReadAsync(id);
@@ -31,9 +33,9 @@ public class IssueService : IIssueService
     }
 
     /// <summary>
-    /// Получить список всех выданных книг.
-    /// 🔧 Include загружает Book и Reader!
+    /// Получает список всех выданных книг.
     /// </summary>
+    /// <returns>Коллекция DTO всех выданных книг. Если выданных книг нет, возвращает пустой список.</returns>
     public async Task<IReadOnlyList<IssueDto>> GetListAsync()
     {
         var issues = await _issueRepository.ReadAllAsync();
@@ -41,13 +43,14 @@ public class IssueService : IIssueService
     }
 
     /// <summary>
-    /// Создать новую выданную книгу.
-    /// 🔧 ИСПРАВЛЕНО: Используются FK вместо создания новых объектов!
+    /// Создает новую запись о выдаче книги.
     /// </summary>
+    /// <param name="input">DTO с данными выдачи (BookId, ReaderId, IssueDate, DaysCount обязательны).</param>
+    /// <returns>DTO созданной выдачи с назначенным идентификатором.</returns>
     public async Task<IssueDto> CreateAsync(IssueCreateUpdateDto input)
     {
         var issue = _mapper.Map<Issue>(input);
-        // 🔧 ВАЖНО: Устанавливаем только FK!
+        // Устанавливаем только внешние ключи
         issue.BookId = input.BookId;
         issue.ReaderId = input.ReaderId;
         issue.IssueDate = input.IssueDate;
@@ -59,16 +62,18 @@ public class IssueService : IIssueService
     }
 
     /// <summary>
-    /// Обновить выданную книгу.
-    /// 🔧 ИСПРАВЛЕНО: Используются FK вместо создания новых объектов!
+    /// Обновляет информацию об существующей выданной книге.
     /// </summary>
+    /// <param name="id">Идентификатор выдачи для обновления.</param>
+    /// <param name="input">DTO с новыми данными выдачи.</param>
+    /// <returns>Обновленный DTO выдачи, если успешно; null если запись не найдена.</returns>
     public async Task<IssueDto?> UpdateAsync(int id, IssueCreateUpdateDto input)
     {
         var existing = await _issueRepository.ReadAsync(id);
         if (existing == null)
             return null;
 
-        // 🔧 Обновляем только базовые поля и FK!
+        // Обновляем только базовые поля и внешние ключи
         existing.BookId = input.BookId;
         existing.ReaderId = input.ReaderId;
         existing.IssueDate = input.IssueDate;
@@ -79,9 +84,10 @@ public class IssueService : IIssueService
     }
 
     /// <summary>
-    /// Отметить книгу как возвращённую.
-    /// 🔧 СПЕЦИАЛЬНЫЙ метод для отметки возврата!
+    /// Отмечает книгу как возвращенную путем установки даты возврата.
     /// </summary>
+    /// <param name="id">Идентификатор выдачи для отметки возврата.</param>
+    /// <returns>Обновленный DTO выдачи, если успешно; null если запись не найдена.</returns>
     public async Task<IssueDto?> MarkAsReturnedAsync(int id)
     {
         var existing = await _issueRepository.ReadAsync(id);
@@ -94,8 +100,9 @@ public class IssueService : IIssueService
     }
 
     /// <summary>
-    /// Удалить выданную книгу.
+    /// Удаляет запись о выданной книге из базы данных по идентификатору.
     /// </summary>
+    /// <param name="id">Идентификатор выдачи для удаления.</param>
     public async Task DeleteAsync(int id)
     {
         await _issueRepository.DeleteAsync(id);
