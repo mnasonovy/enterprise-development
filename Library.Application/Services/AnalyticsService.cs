@@ -7,8 +7,9 @@ using Library.Application.Contracts.Publishers;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для аналитических запросов (Analytics).
-/// 🔧 ИСПРАВЛЕНО: Правильное использование async/await!
+/// Сервис для выполнения аналитических запросов по библиотеке.
+/// Реализует интерфейс IAnalyticsService, предоставляя сложные аналитические операции
+/// с данными о книгах, читателях, издателях и выданных книгах.
 /// </summary>
 public class AnalyticsService : IAnalyticsService
 {
@@ -30,27 +31,30 @@ public class AnalyticsService : IAnalyticsService
     }
 
     /// <summary>
-    /// 1. Получить информацию о выданных книгах, упорядоченные по названию.
+    /// Получить информацию о выданных книгах, упорядоченные по названию.
     /// </summary>
+    /// <returns>Список всех выданных книг отсортированный по названию книги</returns>
     public async Task<IReadOnlyList<IssueDto>> GetIssuedBooksOrderedByTitleAsync()
     {
-        var issues = await _issueService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
+        var issues = await _issueService.GetListAsync();
         var issuedBooks = issues
             .OrderBy(i => i.BookTitle)
             .ToList()
             .AsReadOnly();
-
         return issuedBooks;
     }
 
     /// <summary>
-    /// 2. Получить топ читателей, которые взяли больше всего книг в период.
+    /// Получить топ N читателей, которые взяли больше всего книг в заданный период.
     /// </summary>
+    /// <param name="from">Начало периода поиска</param>
+    /// <param name="to">Конец периода поиска</param>
+    /// <param name="topCount">Количество читателей в топе (по умолчанию 5)</param>
+    /// <returns>Список DTO читателей с наибольшим количеством выданных книг в периоде</returns>
     public async Task<IReadOnlyList<ReaderDto>> GetTopReadersByPeriodAsync(DateTime from, DateTime to, int topCount = 5)
     {
-        var readers = await _readerService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-        var issues = await _issueService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-
+        var readers = await _readerService.GetListAsync();
+        var issues = await _issueService.GetListAsync();
         var topReaders = issues
             .Where(i => i.IssueDate >= from && i.IssueDate <= to)
             .GroupBy(i => i.ReaderId)
@@ -60,18 +64,17 @@ public class AnalyticsService : IAnalyticsService
             .Where(r => r != null)
             .ToList()
             .AsReadOnly();
-
         return topReaders!;
     }
 
     /// <summary>
-    /// 3. Получить читателей, которые брали книги на самый длинный период.
+    /// Получить читателей, которые брали книги на самый длительный период, упорядоченных по полному имени.
     /// </summary>
+    /// <returns>Список DTO читателей упорядоченный по полному имени с максимальным средним периодом выдачи</returns>
     public async Task<IReadOnlyList<ReaderDto>> GetReadersWithLongestIssuePeriodAsync()
     {
-        var readers = await _readerService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-        var issues = await _issueService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-
+        var readers = await _readerService.GetListAsync();
+        var issues = await _issueService.GetListAsync();
         var readersWithLongestPeriod = issues
             .GroupBy(i => i.ReaderId)
             .Select(g => new
@@ -85,21 +88,20 @@ public class AnalyticsService : IAnalyticsService
             .OrderBy(r => r!.FullName)
             .ToList()
             .AsReadOnly();
-
         return readersWithLongestPeriod!;
     }
 
     /// <summary>
-    /// 4. Получить топ издателей за последний год.
+    /// Получить топ N наиболее популярных издателей за последний год.
     /// </summary>
+    /// <param name="topCount">Количество издателей в топе (по умолчанию 5)</param>
+    /// <returns>Список DTO издателей упорядоченный по количеству выданных книг в убывающем порядке</returns>
     public async Task<IReadOnlyList<PublisherDto>> GetTopPublishersLastYearAsync(int topCount = 5)
     {
-        var publishers = await _publisherService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-        var books = await _bookService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-        var issues = await _issueService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-
+        var publishers = await _publisherService.GetListAsync();
+        var books = await _bookService.GetListAsync();
+        var issues = await _issueService.GetListAsync();
         var lastYear = DateTime.Now.AddYears(-1);
-
         var topPublishers = issues
             .Where(i => i.IssueDate >= lastYear)
             .GroupBy(i => i.BookId)
@@ -119,20 +121,19 @@ public class AnalyticsService : IAnalyticsService
             .Where(p => p != null)
             .ToList()
             .AsReadOnly();
-
         return topPublishers!;
     }
 
     /// <summary>
-    /// 5. Получить топ наименее популярных книг за последний год.
+    /// Получить топ N наименее популярных книг за последний год.
     /// </summary>
+    /// <param name="topCount">Количество книг в топе (по умолчанию 5)</param>
+    /// <returns>Список DTO книг упорядоченный по количеству выданных копий в возрастающем порядке</returns>
     public async Task<IReadOnlyList<BookDto>> GetLeastPopularBooksLastYearAsync(int topCount = 5)
     {
-        var books = await _bookService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-        var issues = await _issueService.GetListAsync(); // 🔧 ДОБАВЛЕНО await
-
+        var books = await _bookService.GetListAsync();
+        var issues = await _issueService.GetListAsync();
         var lastYear = DateTime.Now.AddYears(-1);
-
         var leastPopularBooks = books
             .Select(b => new
             {
@@ -146,7 +147,6 @@ public class AnalyticsService : IAnalyticsService
             .Select(x => x.Book)
             .ToList()
             .AsReadOnly();
-
         return leastPopularBooks;
     }
 }
