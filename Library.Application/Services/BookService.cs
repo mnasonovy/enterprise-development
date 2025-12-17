@@ -1,105 +1,86 @@
-﻿namespace Library.Application.Services;
-
+﻿using AutoMapper;
 using Library.Application.Contracts.Books;
-
 using Library.Domain.Models;
-
 using Library.Infrastructure.MongoEf.Repositories;
 
+namespace Library.Application.Services;
+
 /// <summary>
-/// Сервис для CRUD-операций над книгами
+/// Сервис для CRUD-операций над книгами.
+/// 🔧 ИСПРАВЛЕНО: AutoMapper + правильная работа с FK!
 /// </summary>
 public class BookService : IBookService
 {
     private readonly BookRepository _bookRepository;
+    private readonly IMapper _mapper;
 
-    public BookService(BookRepository bookRepository)
+    public BookService(BookRepository bookRepository, IMapper mapper)
     {
         _bookRepository = bookRepository;
+        _mapper = mapper;
     }
 
     /// <summary>
-    /// Получить книгу по идентификатору
+    /// Получить книгу по идентификатору.
+    /// 🔧 Include загружает Authors, BookType, Publisher!
     /// </summary>
     public async Task<BookDto?> GetAsync(int id)
     {
         var book = await _bookRepository.ReadAsync(id);
-        return book is null
-            ? null
-            : MapToDto(book);
+        return book == null ? null : _mapper.Map<BookDto>(book);
     }
 
     /// <summary>
-    /// Получить список всех книг
+    /// Получить список всех книг.
+    /// 🔧 Include загружает Authors, BookType, Publisher!
     /// </summary>
     public async Task<IReadOnlyList<BookDto>> GetListAsync()
     {
         var books = await _bookRepository.ReadAllAsync();
-        return books.Select(MapToDto).ToList().AsReadOnly();
+        return _mapper.Map<IReadOnlyList<BookDto>>(books);
     }
 
     /// <summary>
-    /// Создать новую книгу
+    /// Создать новую книгу.
+    /// 🔧 ИСПРАВЛЕНО: Используются FK вместо создания новых объектов!
     /// </summary>
     public async Task<BookDto> CreateAsync(BookCreateUpdateDto input)
     {
-        var book = new Book
-        {
-            Title = input.Title,
-            Year = input.Year,
-            AlphabetCode = input.AlphabetCode,
-            BookType = new BookType { Id = input.BookTypeId, Name = string.Empty },
-            Publisher = new Publisher { Id = input.PublisherId, Name = string.Empty },
-            Authors = new List<Author>()
-        };
+        var book = _mapper.Map<Book>(input);
+        // 🔧 ВАЖНО: Устанавливаем FK, а не создаём новые объекты!
+        book.BookTypeId = input.BookTypeId;
+        book.PublisherId = input.PublisherId;
 
         var created = await _bookRepository.CreateAsync(book);
-        return MapToDto(created);
+        return _mapper.Map<BookDto>(created);
     }
 
     /// <summary>
-    /// Обновить существующую книгу
+    /// Обновить существующую книгу.
+    /// 🔧 ИСПРАВЛЕНО: Используются FK вместо создания новых объектов!
     /// </summary>
-    public async Task<BookDto> UpdateAsync(int id, BookCreateUpdateDto input)
+    public async Task<BookDto?> UpdateAsync(int id, BookCreateUpdateDto input)
     {
-        var existing = await _bookRepository.ReadAsync(id)
-            ?? throw new InvalidOperationException($"Book with id {id} was not found.");
+        var existing = await _bookRepository.ReadAsync(id);
+        if (existing == null)
+            return null;
 
+        // 🔧 Обновляем только базовые поля и FK!
         existing.Title = input.Title;
         existing.Year = input.Year;
         existing.AlphabetCode = input.AlphabetCode;
-        existing.BookType = new BookType { Id = input.BookTypeId, Name = string.Empty };
-        existing.Publisher = new Publisher { Id = input.PublisherId, Name = string.Empty };
+        existing.BookTypeId = input.BookTypeId;
+        existing.PublisherId = input.PublisherId;
 
-        var updated = await _bookRepository.UpdateAsync(existing)
-            ?? throw new InvalidOperationException($"Book with id {id} was not updated.");
-
-        return MapToDto(updated);
+        var updated = await _bookRepository.UpdateAsync(existing);
+        return updated == null ? null : _mapper.Map<BookDto>(updated);
     }
 
     /// <summary>
-    /// Удалить книгу по идентификатору
+    /// Удалить книгу по идентификатору.
     /// </summary>
     public async Task DeleteAsync(int id)
     {
-        var deleted = await _bookRepository.DeleteAsync(id);
-        if (!deleted)
-        {
-            throw new InvalidOperationException($"Book with id {id} was not deleted.");
-        }
+        await _bookRepository.DeleteAsync(id);
     }
-
-    /// <summary>
-    /// Преобразовать Domain модель книги в DTO
-    /// </summary>
-    private static BookDto MapToDto(Book book) => new()
-    {
-        Id = book.Id,
-        Title = book.Title,
-        Year = book.Year,
-        AlphabetCode = book.AlphabetCode,
-        BookTypeName = book.BookType.Name,
-        PublisherName = book.Publisher.Name,
-        AuthorNames = book.Authors.Select(a => a.LastName).ToList()
-    };
 }

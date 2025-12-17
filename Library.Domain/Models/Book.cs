@@ -1,52 +1,63 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a book catalog entry in the library.
+/// Представляет запись о книге в каталоге библиотеки.
 /// </summary>
 public class Book
 {
     /// <summary>
-    /// Gets or sets the unique identifier of the book.
+    /// Уникальный идентификатор книги.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the alphabet catalog code of the book.
+    /// Буквенный код каталога книги (например: "А1", "Б2").
+    /// Опциональное поле.
     /// </summary>
     public string? AlphabetCode { get; set; }
 
     /// <summary>
-    /// Gets or sets the title of the book.
+    /// Название книги.
+    /// Обязательное поле.
     /// </summary>
     public required string Title { get; set; }
 
     /// <summary>
-    /// Gets or sets the publication year of the book.
+    /// Год публикации книги.
     /// </summary>
     public int Year { get; set; }
 
     /// <summary>
-    /// Foreign key to the book type.
+    /// Внешний ключ на тип книги.
     /// </summary>
     public int BookTypeId { get; set; }
 
     /// <summary>
-    /// Gets or sets the book type (reference entity).
+    /// Тип книги (справочная сущность: роман, учебник и т.д.).
+    /// Обязательное поле.
     /// </summary>
     public required BookType BookType { get; set; }
 
     /// <summary>
-    /// Foreign key to the publisher.
+    /// Внешний ключ на издателя.
     /// </summary>
     public int PublisherId { get; set; }
 
     /// <summary>
-    /// Gets or sets the publisher of the book (reference entity).
+    /// Издатель книги (справочная сущность).
+    /// Обязательное поле.
     /// </summary>
     public required Publisher Publisher { get; set; }
 
     /// <summary>
-    /// Gets or sets the list of authors associated with the book.
+    /// Список авторов, связанных с этой книгой.
+    /// Отношение "много-ко-многим".
     /// </summary>
     public List<Author> Authors { get; set; } = [];
+
+    /// <summary>
+    /// Навигационное свойство - обратная связь к Issue для корректной работы EF Core.
+    /// Необходимо для предотвращения ошибок маппинга при загрузке связанных данных через Include().
+    /// </summary>
+    public List<Issue> Issues { get; set; } = [];
 }

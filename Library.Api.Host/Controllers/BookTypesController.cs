@@ -3,67 +3,138 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Api.Host.Controllers;
 
+/// <summary>
+/// Контроллер для CRUD-операций над типами книг
+/// 🔧 ИСПРАВЛЕНО: DELETE return statement, логирование, валидация
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class BookTypesController : ControllerBase
+public class BookTypesController(
+    IBookTypeService bookTypeService,
+    ILogger<BookTypesController> logger) : ControllerBase
 {
-    private readonly IBookTypeService _bookTypeService;
-
-    public BookTypesController(IBookTypeService bookTypeService)
-    {
-        _bookTypeService = bookTypeService;
-    }
-
-    // GET: api/booktypes
+    /// <summary>
+    /// Получить список всех типов книг
+    /// GET: /api/booktypes
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<BookTypeDto>>> GetListAsync()
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<BookTypeDto>))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetListAsync()
     {
-        var result = await _bookTypeService.GetListAsync();
-        return Ok(result);
+        logger.LogInformation("{Method} method is called", nameof(GetListAsync));
+
+        var result = await bookTypeService.GetListAsync();
+
+        logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetListAsync), result.Count);
+
+        return result.Count > 0 ? Ok(result) : NoContent();
     }
 
-    // GET: api/booktypes/{id}
+    /// <summary>
+    /// Получить тип книги по идентификатору
+    /// GET: /api/booktypes/{id}
+    /// </summary>
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<BookTypeDto>> GetAsync(int id)
+    [ProducesResponseType(200, Type = typeof(BookTypeDto))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetAsync(int id)
     {
-        var result = await _bookTypeService.GetAsync(id);
-        if (result == null)
-        {
-            return NotFound();
-        }
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(GetAsync), id);
 
-        return Ok(result);
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        var result = await bookTypeService.GetAsync(id);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(GetAsync));
+
+        return result != null ? Ok(result) : NotFound();
     }
 
-    // POST: api/booktypes
+    /// <summary>
+    /// Создать новый тип книги
+    /// POST: /api/booktypes
+    /// </summary>
     [HttpPost]
-    public async Task<ActionResult<BookTypeDto>> CreateAsync([FromBody] BookTypeCreateUpdateDto input)
+    [ProducesResponseType(201, Type = typeof(BookTypeDto))]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> CreateAsync([FromBody] BookTypeCreateUpdateDto input)
     {
-        var result = await _bookTypeService.CreateAsync(input);
+        logger.LogInformation("{Method} method is called", nameof(CreateAsync));
+
+        if (input == null)
+            return BadRequest("BookType data is required");
+
+        if (string.IsNullOrWhiteSpace(input.Name))
+            return BadRequest("BookType name is required");
+
+        var result = await bookTypeService.CreateAsync(input);
+
+        logger.LogInformation("{Method} method executed successfully with id = {Id}",
+            nameof(CreateAsync), result.Id);
+
         return CreatedAtAction(
             nameof(GetAsync),
             new { id = result.Id },
             result);
     }
 
-    // PUT: api/booktypes/{id}
+    /// <summary>
+    /// Обновить данные типа книги
+    /// PUT: /api/booktypes/{id}
+    /// </summary>
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<BookTypeDto>> UpdateAsync(int id, [FromBody] BookTypeCreateUpdateDto input)
+    [ProducesResponseType(200, Type = typeof(BookTypeDto))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> UpdateAsync(int id, [FromBody] BookTypeCreateUpdateDto input)
     {
-        var result = await _bookTypeService.UpdateAsync(id, input);
-        if (result == null)
-        {
-            return NotFound();
-        }
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(UpdateAsync), id);
 
-        return Ok(result);
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        if (input == null)
+            return BadRequest("BookType data is required");
+
+        if (string.IsNullOrWhiteSpace(input.Name))
+            return BadRequest("BookType name is required");
+
+        var result = await bookTypeService.UpdateAsync(id, input);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
+
+        return result != null ? Ok(result) : NotFound();
     }
 
-    // DELETE: api/booktypes/{id}
+    /// <summary>
+    /// Удалить тип книги по идентификатору
+    /// DELETE: /api/booktypes/{id}
+    /// </summary>
     [HttpDelete("{id:int}")]
-    public async Task DeleteAsync(int id)
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> DeleteAsync(int id)
     {
-        await _bookTypeService.DeleteAsync(id);
-        NoContent();
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(DeleteAsync), id);
+
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        await bookTypeService.DeleteAsync(id);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
+
+        return NoContent(); // 🔧 ДОБАВЛЕНО return!
     }
 }

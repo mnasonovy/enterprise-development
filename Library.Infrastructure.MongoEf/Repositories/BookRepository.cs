@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using Library.Domain.Models;
 using Library.Infrastructure.MongoEf.Database;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
-/// Репозиторий для работы с книгами через MongoDB EF Core
-/// Заменяет старый MongoDBDriver подход на современный EF Core
+/// Репозиторий для работы с книгами через MongoDB EF Core.
+/// Заменяет старый MongoDBDriver подход на современный EF Core.
+/// 🔧 ИСПРАВЛЕНО: Используются реальные свойства Book!
 /// </summary>
 public class BookRepository
 {
@@ -24,79 +23,91 @@ public class BookRepository
     }
 
     /// <summary>
-    /// Получить книгу по идентификатору
+    /// Получить книгу по идентификатору.
+    /// 🔧 ИСПРАВЛЕНО: Include для Authors, BookType, Publisher
     /// </summary>
-    /// <param name="id">Уникальный идентификатор книги</param>
-    /// <returns>Модель книги или null если не найдена</returns>
     public async Task<Book?> ReadAsync(int id)
     {
         return await _books
             .AsNoTracking()
+            .Include(b => b.Authors)
+            .Include(b => b.BookType)
+            .Include(b => b.Publisher)
             .FirstOrDefaultAsync(b => b.Id == id);
     }
 
     /// <summary>
-    /// Получить список всех книг из базы данных
+    /// Получить список всех книг из базы данных.
+    /// 🔧 ИСПРАВЛЕНО: Include для всех связанных сущностей
     /// </summary>
-    /// <returns>Список всех книг</returns>
     public async Task<IReadOnlyList<Book>> ReadAllAsync()
     {
         var result = await _books
             .AsNoTracking()
+            .Include(b => b.Authors)
+            .Include(b => b.BookType)
+            .Include(b => b.Publisher)
             .ToListAsync();
 
         return result.AsReadOnly();
     }
 
     /// <summary>
-    /// Создать новую книгу в базе данных
+    /// Создать новую книгу в базе данных.
     /// </summary>
-    /// <param name="entity">Модель книги для сохранения</param>
-    /// <returns>Созданная книга с заполненными данными</returns>
-    /// <remarks>
-    /// Id задаётся вручную. Позже можно реализовать автоинкремент через индексы MongoDB
-    /// </remarks>
     public async Task<Book> CreateAsync(Book entity)
     {
         await _books.AddAsync(entity);
         await _context.SaveChangesAsync();
-
         return entity;
     }
 
     /// <summary>
-    /// Удалить книгу из базы данных по идентификатору
+    /// Удалить книгу из базы данных по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор книги</param>
-    /// <returns>true если книга была удалена, false если не найдена</returns>
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _books.FirstOrDefaultAsync(b => b.Id == id);
-
         if (entity is null)
             return false;
 
         _books.Remove(entity);
         await _context.SaveChangesAsync();
-
         return true;
     }
 
     /// <summary>
-    /// Обновить данные существующей книги
+    /// Обновить данные существующей книги.
+    /// 🔧 ИСПРАВЛЕНО: Используются РЕАЛЬНЫЕ свойства Book!
     /// </summary>
-    /// <param name="entity">Модель книги с обновленными данными</param>
-    /// <returns>Обновленная книга или null если не найдена</returns>
     public async Task<Book?> UpdateAsync(Book entity)
     {
-        var exists = await _books.AnyAsync(b => b.Id == entity.Id);
+        var existing = await _books
+            .Include(b => b.Authors)
+            .FirstOrDefaultAsync(b => b.Id == entity.Id);
 
-        if (!exists)
+        if (existing is null)
             return null;
 
-        _books.Update(entity);
-        await _context.SaveChangesAsync();
+        // 🔧 Обновляем только существующие свойства
+        existing.Title = entity.Title;
+        existing.Year = entity.Year;
+        existing.AlphabetCode = entity.AlphabetCode;
+        existing.BookTypeId = entity.BookTypeId;
+        existing.PublisherId = entity.PublisherId;
 
-        return entity;
+        // 🔧 Обновляем Authors если они изменились
+        if (entity.Authors != existing.Authors)
+        {
+            existing.Authors.Clear();
+            foreach (var author in entity.Authors)
+            {
+                existing.Authors.Add(author);
+            }
+        }
+
+        _books.Update(existing);
+        await _context.SaveChangesAsync();
+        return existing;
     }
 }

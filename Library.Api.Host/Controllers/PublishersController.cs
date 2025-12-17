@@ -3,67 +3,138 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Api.Host.Controllers;
 
+/// <summary>
+/// Контроллер для CRUD-операций над издателями
+/// 🔧 ИСПРАВЛЕНО: DELETE return statement, логирование, валидация
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class PublishersController : ControllerBase
+public class PublishersController(
+    IPublisherService publisherService,
+    ILogger<PublishersController> logger) : ControllerBase
 {
-    private readonly IPublisherService _publisherService;
-
-    public PublishersController(IPublisherService publisherService)
-    {
-        _publisherService = publisherService;
-    }
-
-    // GET: api/publishers
+    /// <summary>
+    /// Получить список всех издателей
+    /// GET: /api/publishers
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<PublisherDto>>> GetListAsync()
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<PublisherDto>))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetListAsync()
     {
-        var result = await _publisherService.GetListAsync();
-        return Ok(result);
+        logger.LogInformation("{Method} method is called", nameof(GetListAsync));
+
+        var result = await publisherService.GetListAsync();
+
+        logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetListAsync), result.Count);
+
+        return result.Count > 0 ? Ok(result) : NoContent();
     }
 
-    // GET: api/publishers/{id}
+    /// <summary>
+    /// Получить издателя по идентификатору
+    /// GET: /api/publishers/{id}
+    /// </summary>
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<PublisherDto>> GetAsync(int id)
+    [ProducesResponseType(200, Type = typeof(PublisherDto))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetAsync(int id)
     {
-        var result = await _publisherService.GetAsync(id);
-        if (result == null)
-        {
-            return NotFound();
-        }
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(GetAsync), id);
 
-        return Ok(result);
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        var result = await publisherService.GetAsync(id);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(GetAsync));
+
+        return result != null ? Ok(result) : NotFound();
     }
 
-    // POST: api/publishers
+    /// <summary>
+    /// Создать нового издателя
+    /// POST: /api/publishers
+    /// </summary>
     [HttpPost]
-    public async Task<ActionResult<PublisherDto>> CreateAsync([FromBody] PublisherCreateUpdateDto input)
+    [ProducesResponseType(201, Type = typeof(PublisherDto))]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> CreateAsync([FromBody] PublisherCreateUpdateDto input)
     {
-        var result = await _publisherService.CreateAsync(input);
+        logger.LogInformation("{Method} method is called", nameof(CreateAsync));
+
+        if (input == null)
+            return BadRequest("Publisher data is required");
+
+        if (string.IsNullOrWhiteSpace(input.Name))
+            return BadRequest("Publisher name is required");
+
+        var result = await publisherService.CreateAsync(input);
+
+        logger.LogInformation("{Method} method executed successfully with id = {Id}",
+            nameof(CreateAsync), result.Id);
+
         return CreatedAtAction(
             nameof(GetAsync),
             new { id = result.Id },
             result);
     }
 
-    // PUT: api/publishers/{id}
+    /// <summary>
+    /// Обновить данные издателя
+    /// PUT: /api/publishers/{id}
+    /// </summary>
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<PublisherDto>> UpdateAsync(int id, [FromBody] PublisherCreateUpdateDto input)
+    [ProducesResponseType(200, Type = typeof(PublisherDto))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> UpdateAsync(int id, [FromBody] PublisherCreateUpdateDto input)
     {
-        var result = await _publisherService.UpdateAsync(id, input);
-        if (result == null)
-        {
-            return NotFound();
-        }
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(UpdateAsync), id);
 
-        return Ok(result);
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        if (input == null)
+            return BadRequest("Publisher data is required");
+
+        if (string.IsNullOrWhiteSpace(input.Name))
+            return BadRequest("Publisher name is required");
+
+        var result = await publisherService.UpdateAsync(id, input);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
+
+        return result != null ? Ok(result) : NotFound();
     }
 
-    // DELETE: api/publishers/{id}
+    /// <summary>
+    /// Удалить издателя по идентификатору
+    /// DELETE: /api/publishers/{id}
+    /// </summary>
     [HttpDelete("{id:int}")]
-    public async Task DeleteAsync(int id)
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> DeleteAsync(int id)
     {
-        await _publisherService.DeleteAsync(id);
-        NoContent();
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(DeleteAsync), id);
+
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        await publisherService.DeleteAsync(id);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
+
+        return NoContent(); // 🔧 ДОБАВЛЕНО return!
     }
 }

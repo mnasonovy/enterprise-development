@@ -3,67 +3,144 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Api.Host.Controllers;
 
+/// <summary>
+/// Контроллер для CRUD-операций над читателями
+/// 🔧 ИСПРАВЛЕНО: Убран Email (его нет в ReaderCreateUpdateDto)
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
-public class ReadersController : ControllerBase
+public class ReadersController(
+    IReaderService readerService,
+    ILogger<ReadersController> logger) : ControllerBase
 {
-    private readonly IReaderService _readerService;
-
-    public ReadersController(IReaderService readerService)
-    {
-        _readerService = readerService;
-    }
-
-    // GET: api/readers
+    /// <summary>
+    /// Получить список всех читателей
+    /// GET: /api/readers
+    /// </summary>
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<ReaderDto>>> GetListAsync()
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<ReaderDto>))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetListAsync()
     {
-        var result = await _readerService.GetListAsync();
-        return Ok(result);
+        logger.LogInformation("{Method} method is called", nameof(GetListAsync));
+
+        var result = await readerService.GetListAsync();
+
+        logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetListAsync), result.Count);
+
+        return result.Count > 0 ? Ok(result) : NoContent();
     }
 
-    // GET: api/readers/{id}
+    /// <summary>
+    /// Получить читателя по идентификатору
+    /// GET: /api/readers/{id}
+    /// </summary>
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ReaderDto>> GetAsync(int id)
+    [ProducesResponseType(200, Type = typeof(ReaderDto))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetAsync(int id)
     {
-        var result = await _readerService.GetAsync(id);
-        if (result == null)
-        {
-            return NotFound();
-        }
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(GetAsync), id);
 
-        return Ok(result);
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        var result = await readerService.GetAsync(id);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(GetAsync));
+
+        return result != null ? Ok(result) : NotFound();
     }
 
-    // POST: api/readers
+    /// <summary>
+    /// Создать нового читателя
+    /// POST: /api/readers
+    /// </summary>
     [HttpPost]
-    public async Task<ActionResult<ReaderDto>> CreateAsync([FromBody] ReaderCreateUpdateDto input)
+    [ProducesResponseType(201, Type = typeof(ReaderDto))]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> CreateAsync([FromBody] ReaderCreateUpdateDto input)
     {
-        var result = await _readerService.CreateAsync(input);
+        logger.LogInformation("{Method} method is called", nameof(CreateAsync));
+
+        if (input == null)
+            return BadRequest("Reader data is required");
+
+        if (string.IsNullOrWhiteSpace(input.FullName))
+            return BadRequest("Reader full name is required");
+
+        if (input.RegistrationDate == default)
+            return BadRequest("Registration date is required");
+
+        var result = await readerService.CreateAsync(input);
+
+        logger.LogInformation("{Method} method executed successfully with id = {Id}",
+            nameof(CreateAsync), result.Id);
+
         return CreatedAtAction(
             nameof(GetAsync),
             new { id = result.Id },
             result);
     }
 
-    // PUT: api/readers/{id}
+    /// <summary>
+    /// Обновить данные читателя
+    /// PUT: /api/readers/{id}
+    /// </summary>
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<ReaderDto>> UpdateAsync(int id, [FromBody] ReaderCreateUpdateDto input)
+    [ProducesResponseType(200, Type = typeof(ReaderDto))]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> UpdateAsync(int id, [FromBody] ReaderCreateUpdateDto input)
     {
-        var result = await _readerService.UpdateAsync(id, input);
-        if (result == null)
-        {
-            return NotFound();
-        }
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(UpdateAsync), id);
 
-        return Ok(result);
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        if (input == null)
+            return BadRequest("Reader data is required");
+
+        if (string.IsNullOrWhiteSpace(input.FullName))
+            return BadRequest("Reader full name is required");
+
+        if (input.RegistrationDate == default)
+            return BadRequest("Registration date is required");
+
+        var result = await readerService.UpdateAsync(id, input);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
+
+        return result != null ? Ok(result) : NotFound();
     }
 
-    // DELETE: api/readers/{id}
+    /// <summary>
+    /// Удалить читателя по идентификатору
+    /// DELETE: /api/readers/{id}
+    /// </summary>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(500)]
     public async Task<IActionResult> DeleteAsync(int id)
     {
-        await _readerService.DeleteAsync(id);
+        logger.LogInformation("{Method} method is called with id = {Id}", nameof(DeleteAsync), id);
+
+        if (id <= 0)
+            return BadRequest("Id must be greater than 0");
+
+        await readerService.DeleteAsync(id);
+
+        logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
+
         return NoContent();
     }
 }

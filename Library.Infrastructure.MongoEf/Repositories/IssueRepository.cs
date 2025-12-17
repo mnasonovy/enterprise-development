@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using Library.Domain.Models;
 using Library.Infrastructure.MongoEf.Database;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
-/// Репозиторий для работы с проблемами через MongoDB EF Core
-/// Заменяет старый MongoDBDriver подход на современный EF Core
+/// Репозиторий для работы с выданными книгами (Issue) через MongoDB EF Core.
+/// Заменяет старый MongoDBDriver подход на современный EF Core.
+/// 🔧 ИСПРАВЛЕНО: Используются РЕАЛЬНЫЕ свойства Issue!
 /// </summary>
 public class IssueRepository
 {
@@ -24,76 +23,81 @@ public class IssueRepository
     }
 
     /// <summary>
-    /// Получить проблему по идентификатору
+    /// Получить выданную книгу по идентификатору.
+    /// 🔧 Include для Book и Reader (ОБЯЗАТЕЛЬНО!)
     /// </summary>
-    /// <param name="id">Уникальный идентификатор проблемы</param>
-    /// <returns>Модель проблемы или null если не найдена</returns>
     public async Task<Issue?> ReadAsync(int id)
     {
         return await _issues
             .AsNoTracking()
+            .Include(i => i.Book)
+            .Include(i => i.Reader)
             .FirstOrDefaultAsync(i => i.Id == id);
     }
 
     /// <summary>
-    /// Получить список всех проблем из базы данных
+    /// Получить список всех выданных книг из базы данных.
+    /// 🔧 Include для Book и Reader (ОБЯЗАТЕЛЬНО!)
     /// </summary>
-    /// <returns>Список всех проблем</returns>
     public async Task<IReadOnlyList<Issue>> ReadAllAsync()
     {
         var result = await _issues
             .AsNoTracking()
+            .Include(i => i.Book)
+            .Include(i => i.Reader)
             .ToListAsync();
 
         return result.AsReadOnly();
     }
 
     /// <summary>
-    /// Создать новую проблему в базе данных
+    /// Создать новую выданную книгу в базе данных.
     /// </summary>
-    /// <param name="entity">Модель проблемы для сохранения</param>
-    /// <returns>Созданная проблема с заполненными данными</returns>
     public async Task<Issue> CreateAsync(Issue entity)
     {
         await _issues.AddAsync(entity);
         await _context.SaveChangesAsync();
-
         return entity;
     }
 
     /// <summary>
-    /// Удалить проблему из базы данных по идентификатору
+    /// Удалить выданную книгу из базы данных по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор проблемы</param>
-    /// <returns>true если проблема была удалена, false если не найдена</returns>
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _issues.FirstOrDefaultAsync(i => i.Id == id);
-
         if (entity is null)
             return false;
 
         _issues.Remove(entity);
         await _context.SaveChangesAsync();
-
         return true;
     }
 
     /// <summary>
-    /// Обновить данные существующей проблемы
+    /// Обновить данные существующей выданной книги.
+    /// 🔧 ИСПРАВЛЕНО: Используются РЕАЛЬНЫЕ свойства IssueDate и ReturnDate!
     /// </summary>
-    /// <param name="entity">Модель проблемы с обновленными данными</param>
-    /// <returns>Обновленная проблема или null если не найдена</returns>
     public async Task<Issue?> UpdateAsync(Issue entity)
     {
-        var exists = await _issues.AnyAsync(i => i.Id == entity.Id);
+        // Загружаем существующую Issue с Book и Reader
+        var existing = await _issues
+            .Include(i => i.Book)
+            .Include(i => i.Reader)
+            .FirstOrDefaultAsync(i => i.Id == entity.Id);
 
-        if (!exists)
+        if (existing is null)
             return null;
 
-        _issues.Update(entity);
-        await _context.SaveChangesAsync();
+        // 🔧 Обновляем РЕАЛЬНЫЕ свойства
+        existing.IssueDate = entity.IssueDate;    // ✅ Правильно
+        existing.DaysCount = entity.DaysCount;
+        existing.ReturnDate = entity.ReturnDate;  // ✅ Правильно
+        existing.BookId = entity.BookId;
+        existing.ReaderId = entity.ReaderId;
 
-        return entity;
+        _issues.Update(existing);
+        await _context.SaveChangesAsync();
+        return existing;
     }
 }

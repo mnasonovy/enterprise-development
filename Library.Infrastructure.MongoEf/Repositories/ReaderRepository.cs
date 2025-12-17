@@ -1,16 +1,15 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using Library.Domain.Models;
 using Library.Infrastructure.MongoEf.Database;
-
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
-/// Репозиторий для работы с читателями через MongoDB EF Core
-/// Заменяет старый MongoDBDriver подход на современный EF Core
+/// Репозиторий для работы с читателями через MongoDB EF Core.
+/// Заменяет старый MongoDBDriver подход на современный EF Core.
+/// 🔧 ИСПРАВЛЕНО: Добавлены .Include() для Issues!
 /// </summary>
 public class ReaderRepository
 {
@@ -24,76 +23,66 @@ public class ReaderRepository
     }
 
     /// <summary>
-    /// Получить читателя по идентификатору
+    /// Получить читателя по идентификатору.
+    /// 🔧 ИСПРАВЛЕНО: Include для Issues
     /// </summary>
-    /// <param name="id">Уникальный идентификатор читателя</param>
-    /// <returns>Модель читателя или null если не найден</returns>
     public async Task<Reader?> ReadAsync(int id)
     {
         return await _readers
             .AsNoTracking()
+            .Include(r => r.Issues)  // 🔧 ДОБАВЛЕНО
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
     /// <summary>
-    /// Получить список всех читателей из базы данных
+    /// Получить список всех читателей из базы данных.
+    /// 🔧 ИСПРАВЛЕНО: Include для Issues
     /// </summary>
-    /// <returns>Список всех читателей</returns>
     public async Task<IReadOnlyList<Reader>> ReadAllAsync()
     {
         var result = await _readers
             .AsNoTracking()
+            .Include(r => r.Issues)  // 🔧 ДОБАВЛЕНО
             .ToListAsync();
 
         return result.AsReadOnly();
     }
 
     /// <summary>
-    /// Создать нового читателя в базе данных
+    /// Создать нового читателя в базе данных.
     /// </summary>
-    /// <param name="entity">Модель читателя для сохранения</param>
-    /// <returns>Созданный читатель с заполненными данными</returns>
     public async Task<Reader> CreateAsync(Reader entity)
     {
         await _readers.AddAsync(entity);
         await _context.SaveChangesAsync();
-
         return entity;
     }
 
     /// <summary>
-    /// Удалить читателя из базы данных по идентификатору
+    /// Удалить читателя из базы данных по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор читателя</param>
-    /// <returns>true если читатель был удален, false если не найден</returns>
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _readers.FirstOrDefaultAsync(r => r.Id == id);
-
         if (entity is null)
             return false;
 
         _readers.Remove(entity);
         await _context.SaveChangesAsync();
-
         return true;
     }
 
     /// <summary>
-    /// Обновить данные существующего читателя
+    /// Обновить данные существующего читателя.
     /// </summary>
-    /// <param name="entity">Модель читателя с обновленными данными</param>
-    /// <returns>Обновленный читатель или null если не найден</returns>
     public async Task<Reader?> UpdateAsync(Reader entity)
     {
         var exists = await _readers.AnyAsync(r => r.Id == entity.Id);
-
         if (!exists)
             return null;
 
         _readers.Update(entity);
         await _context.SaveChangesAsync();
-
         return entity;
     }
 }
