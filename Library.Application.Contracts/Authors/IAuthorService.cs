@@ -21,10 +21,11 @@ public interface IAuthorService : IApplicationService
 
     /// <summary>
     /// Создаёт нового автора в базе данных.
+    /// ID должен быть установлен вручную и быть больше 0.
     /// </summary>
-    /// <param name="input">DTO с данными нового автора (фамилия обязательна).</param>
+    /// <param name="input">DTO с данными нового автора (LastName и Id обязательны).</param>
     /// <returns>DTO созданного автора с назначенным идентификатором.</returns>
-    public Task<AuthorDto> CreateAsync(AuthorDto input);
+    public Task<AuthorDto> CreateAsync(AuthorCreateUpdateDto input);
 
     /// <summary>
     /// Обновляет информацию об существующем авторе.
@@ -32,7 +33,7 @@ public interface IAuthorService : IApplicationService
     /// <param name="id">Идентификатор автора для обновления.</param>
     /// <param name="input">DTO с новыми данными автора.</param>
     /// <returns>Обновленный DTO автора, если успешно; null если автор не найден.</returns>
-    public Task<AuthorDto?> UpdateAsync(int id, AuthorDto input);
+    public Task<AuthorDto?> UpdateAsync(int id, AuthorCreateUpdateDto input);
 
     /// <summary>
     /// Удаляет автора из базы данных по идентификатору.

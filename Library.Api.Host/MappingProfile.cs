@@ -20,42 +20,37 @@ public class MappingProfile : Profile
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Author Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         CreateMap<Author, AuthorDto>().ReverseMap();
+        CreateMap<AuthorCreateUpdateDto, Author>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Book Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         CreateMap<Book, BookDto>().ReverseMap();
-        CreateMap<Book, BookCreateUpdateDto>().ReverseMap();
+        CreateMap<BookCreateUpdateDto, Book>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // BookType Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         CreateMap<BookType, BookTypeDto>().ReverseMap();
-        CreateMap<BookType, BookTypeCreateUpdateDto>().ReverseMap();
+        CreateMap<BookTypeCreateUpdateDto, BookType>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Issue Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         CreateMap<Issue, IssueDto>().ReverseMap();
-        CreateMap<Issue, IssueCreateUpdateDto>().ReverseMap();
+        CreateMap<IssueCreateUpdateDto, Issue>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Publisher Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         CreateMap<Publisher, PublisherDto>().ReverseMap();
-        CreateMap<Publisher, PublisherCreateUpdateDto>().ReverseMap();
+        CreateMap<PublisherCreateUpdateDto, Publisher>().ReverseMap();
 
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         // Reader Mappings
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
         CreateMap<Reader, ReaderDto>().ReverseMap();
-        CreateMap<Reader, ReaderCreateUpdateDto>().ReverseMap();
+        CreateMap<ReaderCreateUpdateDto, Reader>().ReverseMap();
     }
 }

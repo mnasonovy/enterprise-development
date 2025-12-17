@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Library.Domain.Models;
 using Library.Infrastructure.MongoEf.Database;
@@ -10,12 +9,17 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 /// <summary>
 /// Репозиторий для управления авторами в MongoDB через Entity Framework Core.
 /// Предоставляет методы для выполнения CRUD операций над сущностью Author.
+/// MongoDB EF Core не поддерживает Include, поэтому загружаем данные без навигаций.
 /// </summary>
 public class AuthorRepository
 {
     private readonly MongoDbContext _context;
     private readonly DbSet<Author> _authors;
 
+    /// <summary>
+    /// Инициализирует репозиторий с контекстом MongoDB EF Core.
+    /// </summary>
+    /// <param name="context">Контекст базы данных MongoDB</param>
     public AuthorRepository(MongoDbContext context)
     {
         _context = context;
