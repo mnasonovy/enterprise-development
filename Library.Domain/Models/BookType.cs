@@ -1,22 +1,26 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a type of book (e.g., Novel, Textbook).
+/// Справочная сущность типа книги.
+/// Представляет классификацию книг по жанрам и категориям (Роман, Учебник, Справочник и т.д.).
+/// Используется для categorization и фильтрации книг в каталоге.
 /// </summary>
 public class BookType
 {
     /// <summary>
-    /// Gets or sets the unique identifier of the book type.
+    /// Уникальный идентификатор типа книги в базе данных.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the name of the book type (e.g., "Novel", "Textbook").
+    /// Название типа книги (например: "Роман", "Учебник", "Справочник", "Научная литература").
+    /// Обязательное поле.
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    /// Navigation property for books of this type.
+    /// Коллекция всех книг, принадлежащих к этому типу.
+    /// Обратная навигационная ссылка для связи "один-ко-многим" (BookType → Books).
     /// </summary>
     public List<Book> Books { get; set; } = [];
 }

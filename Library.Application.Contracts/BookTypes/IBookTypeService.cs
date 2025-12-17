@@ -3,6 +3,7 @@
 /// <summary>
 /// Интерфейс сервиса для CRUD-операций над типами книг.
 /// Определяет контракт для работы с типами книг в приложении.
+/// Все методы асинхронные и возвращают Task.
 /// </summary>
 public interface IBookTypeService : IApplicationService
 {
