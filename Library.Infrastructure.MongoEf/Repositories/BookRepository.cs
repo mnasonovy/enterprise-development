@@ -1,15 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+
 using Library.Domain.Models;
 using Library.Infrastructure.MongoEf.Database;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
 /// Репозиторий для работы с книгами через MongoDB EF Core.
-/// Заменяет старый MongoDBDriver подход на современный EF Core.
-/// 🔧 ИСПРАВЛЕНО: Используются реальные свойства Book!
+/// Реализует паттерн Repository для абстрагирования логики доступа к данным.
+/// Предоставляет методы CRUD для управления сущностями Book в базе данных.
 /// </summary>
 public class BookRepository
 {
@@ -23,9 +25,11 @@ public class BookRepository
     }
 
     /// <summary>
-    /// Получить книгу по идентификатору.
-    /// 🔧 ИСПРАВЛЕНО: Include для Authors, BookType, Publisher
+    /// Получить информацию о книге по её идентификатору.
+    /// Включает связанные сущности: Authors, BookType и Publisher.
     /// </summary>
+    /// <param name="id">Уникальный идентификатор книги в базе данных.</param>
+    /// <returns>Сущность Book с полностью загруженными связанными данными или null.</returns>
     public async Task<Book?> ReadAsync(int id)
     {
         return await _books
@@ -37,9 +41,10 @@ public class BookRepository
     }
 
     /// <summary>
-    /// Получить список всех книг из базы данных.
-    /// 🔧 ИСПРАВЛЕНО: Include для всех связанных сущностей
+    /// Получить полный список всех книг из базы данных.
+    /// Автоматически загружает все связанные сущности для каждой книги.
     /// </summary>
+    /// <returns>Неизменяемая коллекция всех книг с загруженными связанными данными.</returns>
     public async Task<IReadOnlyList<Book>> ReadAllAsync()
     {
         var result = await _books
@@ -54,32 +59,42 @@ public class BookRepository
 
     /// <summary>
     /// Создать новую книгу в базе данных.
+    /// Сохраняет сущность Book со всеми её свойствами и связями.
     /// </summary>
+    /// <param name="entity">Сущность Book с заполненными данными для создания.</param>
+    /// <returns>Созданная сущность Book с заполненным ID.</returns>
     public async Task<Book> CreateAsync(Book entity)
     {
         await _books.AddAsync(entity);
         await _context.SaveChangesAsync();
+
         return entity;
     }
 
     /// <summary>
-    /// Удалить книгу из базы данных по идентификатору.
+    /// Удалить книгу из базы данных по её идентификатору.
     /// </summary>
+    /// <param name="id">Уникальный идентификатор книги для удаления.</param>
+    /// <returns>true, если книга была успешно удалена; false, если книга не найдена.</returns>
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _books.FirstOrDefaultAsync(b => b.Id == id);
+
         if (entity is null)
             return false;
 
         _books.Remove(entity);
         await _context.SaveChangesAsync();
+
         return true;
     }
 
     /// <summary>
-    /// Обновить данные существующей книги.
-    /// 🔧 ИСПРАВЛЕНО: Используются РЕАЛЬНЫЕ свойства Book!
+    /// Обновить данные существующей книги в базе данных.
+    /// Обновляет все основные свойства и пересчитывает связь "многие-ко-многим" с авторами.
     /// </summary>
+    /// <param name="entity">Сущность Book с обновленными данными.</param>
+    /// <returns>Обновленная сущность Book или null, если книга с таким ID не найдена.</returns>
     public async Task<Book?> UpdateAsync(Book entity)
     {
         var existing = await _books
@@ -89,14 +104,14 @@ public class BookRepository
         if (existing is null)
             return null;
 
-        // 🔧 Обновляем только существующие свойства
+        // Обновляем основные свойства книги
         existing.Title = entity.Title;
         existing.Year = entity.Year;
         existing.AlphabetCode = entity.AlphabetCode;
         existing.BookTypeId = entity.BookTypeId;
         existing.PublisherId = entity.PublisherId;
 
-        // 🔧 Обновляем Authors если они изменились
+        // Обновляем коллекцию авторов если она изменилась
         if (entity.Authors != existing.Authors)
         {
             existing.Authors.Clear();
@@ -108,6 +123,7 @@ public class BookRepository
 
         _books.Update(existing);
         await _context.SaveChangesAsync();
+
         return existing;
     }
 }

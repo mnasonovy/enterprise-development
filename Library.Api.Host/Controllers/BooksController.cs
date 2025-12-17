@@ -1,10 +1,13 @@
 ﻿using Library.Application.Contracts.Books;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Api.Host.Controllers;
 
 /// <summary>
-/// Контроллер для CRUD-операций над книгами
+/// REST API контроллер для управления книгами в библиотеке.
+/// Предоставляет endpoints для выполнения CRUD-операций над книгами.
+/// Маршруты: GET, POST, PUT, DELETE на /api/books.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -13,9 +16,10 @@ public class BooksController(
     ILogger<BooksController> logger) : ControllerBase
 {
     /// <summary>
-    /// Получить список всех книг
-    /// GET: /api/books
+    /// Получить список всех книг из каталога библиотеки.
+    /// Возвращает 200 OK с коллекцией книг или 204 No Content если нет книг.
     /// </summary>
+    /// <returns>Коллекция BookDto или пустой результат.</returns>
     [HttpGet]
     [ProducesResponseType(200, Type = typeof(IReadOnlyList<BookDto>))]
     [ProducesResponseType(204)]
@@ -23,9 +27,7 @@ public class BooksController(
     public async Task<IActionResult> GetListAsync()
     {
         logger.LogInformation("{Method} method is called", nameof(GetListAsync));
-
         var result = await bookService.GetListAsync();
-
         logger.LogInformation("{Method} method executed successfully with {Count} items",
             nameof(GetListAsync), result.Count);
 
@@ -33,10 +35,12 @@ public class BooksController(
     }
 
     /// <summary>
-    /// Получить книгу по идентификатору
-    /// GET: /api/books/{id}
+    /// Получить информацию о конкретной книге по её ID.
+    /// Возвращает 200 OK если найдена или 404 Not Found если не существует.
     /// </summary>
-    [HttpGet("{id:int}")]  // ✅ Явно указываем :int
+    /// <param name="id">Уникальный идентификатор книги (должен быть > 0).</param>
+    /// <returns>BookDto если найдена, иначе 404.</returns>
+    [HttpGet("{id:int}")]
     [ProducesResponseType(200, Type = typeof(BookDto))]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -49,16 +53,17 @@ public class BooksController(
             return BadRequest("Id must be greater than 0");
 
         var result = await bookService.GetAsync(id);
-
         logger.LogInformation("{Method} method executed successfully", nameof(GetAsync));
 
         return result != null ? Ok(result) : NotFound();
     }
 
     /// <summary>
-    /// Создать новую книгу
-    /// POST: /api/books
+    /// Создать новую книгу в каталоге библиотеки.
+    /// Валидирует все обязательные поля и возвращает 201 Created.
     /// </summary>
+    /// <param name="input">DTO с данными новой книги (Title, Year, BookTypeId, PublisherId, AuthorIds).</param>
+    /// <returns>201 Created с BookDto и Location header, или 400 Bad Request при ошибке валидации.</returns>
     [HttpPost]
     [ProducesResponseType(201, Type = typeof(BookDto))]
     [ProducesResponseType(400)]
@@ -86,22 +91,24 @@ public class BooksController(
             return BadRequest("All author ids must be greater than 0");
 
         var result = await bookService.CreateAsync(input);
-
         logger.LogInformation("{Method} method executed successfully with id = {Id}",
             nameof(CreateAsync), result.Id);
 
-        // ✅ ИСПРАВЛЕНО: Используем CreatedAtAction с правильной сигнатурой
+        // Возвращаем 201 Created с Location header для новой книги
         return CreatedAtAction(
-            nameof(GetAsync),           // Имя метода для редиректа
-            new { id = result.Id },     // Параметры для маршрута GetAsync
-            result);                    // Тело ответа
+            nameof(GetAsync),
+            new { id = result.Id },
+            result);
     }
 
     /// <summary>
-    /// Обновить данные книги
-    /// PUT: /api/books/{id}
+    /// Обновить информацию о существующей книге.
+    /// Валидирует все поля и возвращает 200 OK с обновленными данными.
     /// </summary>
-    [HttpPut("{id:int}")]  // ✅ Явно указываем :int
+    /// <param name="id">Уникальный идентификатор книги для обновления (должен быть > 0).</param>
+    /// <param name="input">DTO с новыми данными книги.</param>
+    /// <returns>200 OK с обновленным BookDto, 404 Not Found если книга не существует, или 400 Bad Request при ошибке.</returns>
+    [HttpPut("{id:int}")]
     [ProducesResponseType(200, Type = typeof(BookDto))]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -132,17 +139,18 @@ public class BooksController(
             return BadRequest("All author ids must be greater than 0");
 
         var result = await bookService.UpdateAsync(id, input);
-
         logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
 
         return result != null ? Ok(result) : NotFound();
     }
 
     /// <summary>
-    /// Удалить книгу по идентификатору
-    /// DELETE: /api/books/{id}
+    /// Удалить книгу из каталога библиотеки по её ID.
+    /// Возвращает 204 No Content при успехе.
     /// </summary>
-    [HttpDelete("{id:int}")]  // ✅ Явно указываем :int
+    /// <param name="id">Уникальный идентификатор книги для удаления (должен быть > 0).</param>
+    /// <returns>204 No Content при успехе, или 400 Bad Request при неверном ID.</returns>
+    [HttpDelete("{id:int}")]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
@@ -154,7 +162,6 @@ public class BooksController(
             return BadRequest("Id must be greater than 0");
 
         await bookService.DeleteAsync(id);
-
         logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
 
         return NoContent();
