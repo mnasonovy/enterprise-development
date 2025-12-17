@@ -2,9 +2,9 @@ name: .NET CI
 
 on:
   push:
-    branches: [ "lab_1", "main" ]
+    branches: [ "lab_1", "lab_2", "lab_3", "lab_4", "main" ]
   pull_request:
-    branches: [ "lab_1", "main" ]
+    branches: [ "lab_1", "lab_2", "lab_3", "lab_4", "main" ]
 
 jobs:
   build:
