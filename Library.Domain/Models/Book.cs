@@ -54,8 +54,15 @@ public class Book
     public required Publisher Publisher { get; set; }
 
     /// <summary>
+    /// Коллекция идентификаторов авторов.
+    /// Хранит только ID авторов для связи "многие-ко-многим".
+    /// </summary>
+    public List<int> AuthorIds { get; set; } = [];
+
+    /// <summary>
     /// Коллекция авторов, написавших эту книгу.
     /// Отношение "многие-ко-многим" (Book ↔ Author).
+    /// Загружается из БД при необходимости.
     /// </summary>
     public List<Author> Authors { get; set; } = [];
 

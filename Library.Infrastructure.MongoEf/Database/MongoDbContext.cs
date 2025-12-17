@@ -5,61 +5,65 @@ using MongoDB.EntityFrameworkCore.Extensions;
 namespace Library.Infrastructure.MongoEf.Database;
 
 /// <summary>
-/// MongoDB EF Core контекст для работы с LibraryDb.
-/// Предоставляет DbSet для всех сущностей и конфигурирует отношения между ними.
+/// Контекст базы данных MongoDB для приложения библиотеки.
+/// Управляет всеми сущностями (книги, авторы, читатели, выпуски, издатели, типы книг)
+/// и определяет их отношения в MongoDB.
 /// </summary>
 public class MongoDbContext : DbContext
 {
     /// <summary>
-    /// Инициализирует новый экземпляр MongoDbContext с переданными параметрами.
+    /// Инициализирует новый экземпляр <see cref="MongoDbContext"/>.
     /// </summary>
-    public MongoDbContext(DbContextOptions<MongoDbContext> options)
-        : base(options)
+    /// <param name="options">Опции конфигурации контекста</param>
+    public MongoDbContext(DbContextOptions<MongoDbContext> options) : base(options)
     {
     }
 
     /// <summary>
-    /// DbSet для работы с книгами.
+    /// Набор данных для коллекции книг.
+    /// Содержит все книги в каталоге библиотеки.
     /// </summary>
     public DbSet<Book> Books { get; set; } = null!;
 
     /// <summary>
-    /// DbSet для работы с авторами.
+    /// Набор данных для коллекции авторов.
+    /// Содержит информацию обо всех авторах книг в каталоге.
     /// </summary>
     public DbSet<Author> Authors { get; set; } = null!;
 
     /// <summary>
-    /// DbSet для работы с читателями.
+    /// Набор данных для коллекции читателей.
+    /// Содержит информацию обо всех зарегистрированных читателях библиотеки.
     /// </summary>
     public DbSet<Reader> Readers { get; set; } = null!;
 
     /// <summary>
-    /// DbSet для работы с выданными книгами (выдачи).
+    /// Набор данных для коллекции выпусков.
+    /// Содержит информацию о всех выпусках (экземплярах) книг в библиотеке.
     /// </summary>
     public DbSet<Issue> Issues { get; set; } = null!;
 
     /// <summary>
-    /// DbSet для работы с издателями.
+    /// Набор данных для коллекции издателей.
+    /// Содержит информацию обо всех издателях книг в каталоге.
     /// </summary>
     public DbSet<Publisher> Publishers { get; set; } = null!;
 
     /// <summary>
-    /// DbSet для работы с типами книг.
+    /// Набор данных для коллекции типов книг.
+    /// Содержит справочник категорий книг (роман, учебник, справочник и т.д.).
     /// </summary>
     public DbSet<BookType> BookTypes { get; set; } = null!;
 
     /// <summary>
-    /// Конфигурация модели данных для MongoDB.
-    /// Определяет коллекции, первичные ключи и отношения между сущностями.
+    /// Конфигурирует модель данных и отношения между сущностями в MongoDB.
     /// </summary>
+    /// <param name="modelBuilder">Построитель модели для конфигурации сущностей</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // ════════════════════════════════════════════════════════════════
-        // КОЛЛЕКЦИИ MONGODB - Имена коллекций в нижнем регистре
-        // ════════════════════════════════════════════════════════════════
-
+        // Определяет имена коллекций MongoDB для каждой сущности
         modelBuilder.Entity<Book>().ToCollection("books");
         modelBuilder.Entity<Author>().ToCollection("authors");
         modelBuilder.Entity<Reader>().ToCollection("readers");
@@ -67,73 +71,72 @@ public class MongoDbContext : DbContext
         modelBuilder.Entity<Publisher>().ToCollection("publishers");
         modelBuilder.Entity<BookType>().ToCollection("booktypes");
 
-        // ════════════════════════════════════════════════════════════════
-        // КОНФИГУРАЦИЯ: BOOK (Главная сущность)
-        // ════════════════════════════════════════════════════════════════
+        // ========================================
+        // КОНФИГУРАЦИЯ СУЩНОСТИ BOOK
+        // ========================================
+        modelBuilder.Entity<Book>().HasKey(b => b.Id);
 
-        modelBuilder.Entity<Book>()
-            .HasKey(b => b.Id);
-
-        // Book (1) ──→ (М) BookType
+        // Связь Book → BookType (многие-к-одному)
         modelBuilder.Entity<Book>()
             .HasOne(b => b.BookType)
             .WithMany(bt => bt.Books)
             .HasForeignKey(b => b.BookTypeId)
             .IsRequired();
 
-        // Book (1) ──→ (М) Publisher
+        // Связь Book → Publisher (многие-к-одному)
         modelBuilder.Entity<Book>()
             .HasOne(b => b.Publisher)
             .WithMany(p => p.Books)
             .HasForeignKey(b => b.PublisherId)
             .IsRequired();
 
-        // Book (1) ──→ (М) Issue
+        // Связь Book → Issue (один-ко-многим)
         modelBuilder.Entity<Book>()
             .HasMany(b => b.Issues)
             .WithOne(i => i.Book)
             .HasForeignKey(i => i.BookId)
             .IsRequired();
 
-        // Book ↔ (М-М) Author (многие-ко-многим)
+        // Связь Book ↔ Author (многие-ко-многим)
+        // Используется коллекция book_authors для хранения связей
         modelBuilder.Entity<Book>()
             .HasMany(b => b.Authors)
             .WithMany(a => a.Books)
-            .UsingEntity(
-                "BookAuthors",
-                l => l.HasOne(typeof(Author)).WithMany().HasForeignKey("AuthorId").OnDelete(DeleteBehavior.Cascade),
-                r => r.HasOne(typeof(Book)).WithMany().HasForeignKey("BookId").OnDelete(DeleteBehavior.Cascade),
+            .UsingEntity("BookAuthors",
+                l => l.HasOne(typeof(Author))
+                    .WithMany()
+                    .HasForeignKey("AuthorId")
+                    .OnDelete(DeleteBehavior.Cascade),
+                r => r.HasOne(typeof(Book))
+                    .WithMany()
+                    .HasForeignKey("BookId")
+                    .OnDelete(DeleteBehavior.Cascade),
                 j => j.ToCollection("book_authors"));
 
-        // ════════════════════════════════════════════════════════════════
-        // КОНФИГУРАЦИЯ: AUTHOR
-        // ════════════════════════════════════════════════════════════════
+        // ========================================
+        // КОНФИГУРАЦИЯ СУЩНОСТИ AUTHOR
+        // ========================================
+        modelBuilder.Entity<Author>().HasKey(a => a.Id);
 
-        modelBuilder.Entity<Author>()
-            .HasKey(a => a.Id);
+        // ========================================
+        // КОНФИГУРАЦИЯ СУЩНОСТИ READER
+        // ========================================
+        modelBuilder.Entity<Reader>().HasKey(r => r.Id);
 
-        // ════════════════════════════════════════════════════════════════
-        // КОНФИГУРАЦИЯ: READER (Читатель библиотеки)
-        // ════════════════════════════════════════════════════════════════
-
-        modelBuilder.Entity<Reader>()
-            .HasKey(r => r.Id);
-
-        // Reader (1) ──→ (М) Issue
+        // Связь Reader → Issue (один-ко-многим)
         modelBuilder.Entity<Reader>()
             .HasMany(r => r.Issues)
             .WithOne(i => i.Reader)
             .HasForeignKey(i => i.ReaderId)
             .IsRequired();
 
-        // ════════════════════════════════════════════════════════════════
-        // КОНФИГУРАЦИЯ: ISSUE (ВЫДАЧА КНИГИ)
-        // ════════════════════════════════════════════════════════════════
+        // ========================================
+        // КОНФИГУРАЦИЯ СУЩНОСТИ ISSUE
+        // ========================================
+        modelBuilder.Entity<Issue>().HasKey(i => i.Id);
 
-        modelBuilder.Entity<Issue>()
-            .HasKey(i => i.Id);
-
-        // Issue (М) ──→ (1) Book
+        // Связь Issue → Book (многие-к-одному)
+        // При удалении книги выпуск ограничивается (Restrict)
         modelBuilder.Entity<Issue>()
             .HasOne(i => i.Book)
             .WithMany(b => b.Issues)
@@ -141,7 +144,8 @@ public class MongoDbContext : DbContext
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Issue (М) ──→ (1) Reader
+        // Связь Issue → Reader (многие-к-одному)
+        // При удалении читателя выпуск ограничивается (Restrict)
         modelBuilder.Entity<Issue>()
             .HasOne(i => i.Reader)
             .WithMany(r => r.Issues)
@@ -149,28 +153,24 @@ public class MongoDbContext : DbContext
             .IsRequired()
             .OnDelete(DeleteBehavior.Restrict);
 
-        // ════════════════════════════════════════════════════════════════
-        // КОНФИГУРАЦИЯ: PUBLISHER (Издатель)
-        // ════════════════════════════════════════════════════════════════
+        // ========================================
+        // КОНФИГУРАЦИЯ СУЩНОСТИ PUBLISHER
+        // ========================================
+        modelBuilder.Entity<Publisher>().HasKey(p => p.Id);
 
-        modelBuilder.Entity<Publisher>()
-            .HasKey(p => p.Id);
-
-        // Publisher (1) ──→ (М) Book
+        // Связь Publisher → Book (один-ко-многим)
         modelBuilder.Entity<Publisher>()
             .HasMany(p => p.Books)
             .WithOne(b => b.Publisher)
             .HasForeignKey(b => b.PublisherId)
             .IsRequired();
 
-        // ════════════════════════════════════════════════════════════════
-        // КОНФИГУРАЦИЯ: BOOKTYPE (Тип книги)
-        // ════════════════════════════════════════════════════════════════
+        // ========================================
+        // КОНФИГУРАЦИЯ СУЩНОСТИ BOOKTYPE
+        // ========================================
+        modelBuilder.Entity<BookType>().HasKey(bt => bt.Id);
 
-        modelBuilder.Entity<BookType>()
-            .HasKey(bt => bt.Id);
-
-        // BookType (1) ──→ (М) Book
+        // Связь BookType → Book (один-ко-многим)
         modelBuilder.Entity<BookType>()
             .HasMany(bt => bt.Books)
             .WithOne(b => b.BookType)

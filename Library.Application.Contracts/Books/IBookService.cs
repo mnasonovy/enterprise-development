@@ -21,8 +21,9 @@ public interface IBookService : IApplicationService
 
     /// <summary>
     /// Создать новую книгу в каталоге библиотеки.
+    /// ID должен быть установлен вручную и быть больше 0.
     /// </summary>
-    /// <param name="input">DTO с данными новой книги: Title, Year, BookTypeId, PublisherId, AuthorIds.</param>
+    /// <param name="input">DTO с данными новой книги: Title, Year, BookTypeId, PublisherId, AuthorIds, Id.</param>
     /// <returns>DTO созданной книги с автоматически заполненным ID и связанными данными.</returns>
     public Task<BookDto> CreateAsync(BookCreateUpdateDto input);
 
@@ -38,6 +39,5 @@ public interface IBookService : IApplicationService
     /// Удалить книгу из каталога библиотеки.
     /// </summary>
     /// <param name="id">Уникальный идентификатор книги для удаления.</param>
-    /// <returns>Асинхронная задача удаления.</returns>
     public Task DeleteAsync(int id);
 }

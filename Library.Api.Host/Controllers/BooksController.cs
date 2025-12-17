@@ -1,13 +1,13 @@
 ﻿using Library.Application.Contracts.Books;
-
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Api.Host.Controllers;
 
 /// <summary>
-/// REST API контроллер для управления книгами в библиотеке.
-/// Предоставляет endpoints для выполнения CRUD-операций над книгами.
-/// Маршруты: GET, POST, PUT, DELETE на /api/books.
+/// REST API контроллер для управления книгами в каталоге библиотеки.
+/// Реализует полный набор CRUD-операций: получение списка, получение по ID, 
+/// создание новой книги, обновление и удаление.
+/// Все методы содержат подробное логирование и валидацию входных данных.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -16,10 +16,13 @@ public class BooksController(
     ILogger<BooksController> logger) : ControllerBase
 {
     /// <summary>
-    /// Получить список всех книг из каталога библиотеки.
-    /// Возвращает 200 OK с коллекцией книг или 204 No Content если нет книг.
+    /// Получает список всех книг из каталога.
     /// </summary>
-    /// <returns>Коллекция BookDto или пустой результат.</returns>
+    /// <returns>
+    /// 200 OK с коллекцией DTO всех книг.
+    /// 204 No Content если каталог пуст.
+    /// 500 Internal Server Error в случае ошибки БД.
+    /// </returns>
     [HttpGet]
     [ProducesResponseType(200, Type = typeof(IReadOnlyList<BookDto>))]
     [ProducesResponseType(204)]
@@ -30,40 +33,46 @@ public class BooksController(
         var result = await bookService.GetListAsync();
         logger.LogInformation("{Method} method executed successfully with {Count} items",
             nameof(GetListAsync), result.Count);
-
         return result.Count > 0 ? Ok(result) : NoContent();
     }
 
     /// <summary>
-    /// Получить информацию о конкретной книге по её ID.
-    /// Возвращает 200 OK если найдена или 404 Not Found если не существует.
+    /// Получает информацию о книге по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор книги (должен быть > 0).</param>
-    /// <returns>BookDto если найдена, иначе 404.</returns>
+    /// <param name="id">Уникальный идентификатор книги</param>
+    /// <returns>
+    /// 200 OK с DTO книги.
+    /// 400 Bad Request если ID некорректен (≤ 0).
+    /// 404 Not Found если книга не найдена.
+    /// 500 Internal Server Error в случае ошибки БД.
+    /// </returns>
     [HttpGet("{id:int}")]
     [ProducesResponseType(200, Type = typeof(BookDto))]
+    [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetAsync(int id)
     {
         logger.LogInformation("{Method} method is called with id = {Id}", nameof(GetAsync), id);
-
         if (id <= 0)
             return BadRequest("Id must be greater than 0");
-
         var result = await bookService.GetAsync(id);
         logger.LogInformation("{Method} method executed successfully", nameof(GetAsync));
-
         return result != null ? Ok(result) : NotFound();
     }
 
     /// <summary>
-    /// Создать новую книгу в каталоге библиотеки.
-    /// Валидирует все обязательные поля и возвращает 201 Created.
+    /// Создает новую книгу в каталоге.
+    /// Требует обязательные поля: ID (устанавливается вручную), Title, Year, BookTypeId, PublisherId.
+    /// Авторы передаются списком AuthorIds и должны существовать в БД.
     /// </summary>
-    /// <param name="input">DTO с данными новой книги (Title, Year, BookTypeId, PublisherId, AuthorIds).</param>
-    /// <returns>201 Created с BookDto и Location header, или 400 Bad Request при ошибке валидации.</returns>
+    /// <param name="input">DTO с данными новой книги</param>
+    /// <returns>
+    /// 201 Created с DTO созданной книги и заголовком Location.
+    /// 400 Bad Request если входные данные некорректны или отсутствуют обязательные поля.
+    /// 500 Internal Server Error в случае ошибки БД или обработки.
+    /// </returns>
     [HttpPost]
     [ProducesResponseType(201, Type = typeof(BookDto))]
     [ProducesResponseType(400)]
@@ -75,41 +84,52 @@ public class BooksController(
         if (input == null)
             return BadRequest("Book data is required");
 
+        if (input.Id <= 0)
+            return BadRequest("Book ID must be set manually and be greater than 0");
+
         if (string.IsNullOrWhiteSpace(input.Title))
             return BadRequest("Book title is required");
 
+        if (input.Year <= 0)
+            return BadRequest("Book year must be greater than 0");
+
         if (input.BookTypeId <= 0)
-            return BadRequest("Valid book type id is required");
+            return BadRequest("BookType ID is required and must be greater than 0");
 
         if (input.PublisherId <= 0)
-            return BadRequest("Valid publisher id is required");
+            return BadRequest("Publisher ID is required and must be greater than 0");
 
-        if (input.AuthorIds == null || input.AuthorIds.Count == 0)
-            return BadRequest("At least one author id is required");
-
-        if (input.AuthorIds.Any(id => id <= 0))
-            return BadRequest("All author ids must be greater than 0");
-
-        var result = await bookService.CreateAsync(input);
-        logger.LogInformation("{Method} method executed successfully with id = {Id}",
-            nameof(CreateAsync), result.Id);
-
-        // Возвращаем 201 Created с Location header для новой книги
-        return CreatedAtAction(
-            nameof(GetAsync),
-            new { id = result.Id },
-            result);
+        try
+        {
+            var result = await bookService.CreateAsync(input);
+            logger.LogInformation("{Method} method executed successfully with id = {Id}",
+                nameof(CreateAsync), result.Id);
+            return Created($"/api/books/{result.Id}", result);
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogError("Error creating Book: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>
-    /// Обновить информацию о существующей книге.
-    /// Валидирует все поля и возвращает 200 OK с обновленными данными.
+    /// Обновляет существующую книгу в каталоге.
+    /// Требует обязательные поля: Title, Year, BookTypeId, PublisherId.
+    /// Авторы передаются списком AuthorIds и должны существовать в БД.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор книги для обновления (должен быть > 0).</param>
-    /// <param name="input">DTO с новыми данными книги.</param>
-    /// <returns>200 OK с обновленным BookDto, 404 Not Found если книга не существует, или 400 Bad Request при ошибке.</returns>
+    /// <param name="id">Уникальный идентификатор книги для обновления</param>
+    /// <param name="input">DTO с новыми данными книги</param>
+    /// <returns>
+    /// 200 OK с обновленным DTO книги.
+    /// 204 No Content если книга не найдена.
+    /// 400 Bad Request если входные данные или ID некорректны.
+    /// 404 Not Found если книга не найдена в БД.
+    /// 500 Internal Server Error в случае ошибки БД или обработки.
+    /// </returns>
     [HttpPut("{id:int}")]
     [ProducesResponseType(200, Type = typeof(BookDto))]
+    [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
@@ -126,30 +146,38 @@ public class BooksController(
         if (string.IsNullOrWhiteSpace(input.Title))
             return BadRequest("Book title is required");
 
+        if (input.Year <= 0)
+            return BadRequest("Book year must be greater than 0");
+
         if (input.BookTypeId <= 0)
-            return BadRequest("Valid book type id is required");
+            return BadRequest("BookType ID is required and must be greater than 0");
 
         if (input.PublisherId <= 0)
-            return BadRequest("Valid publisher id is required");
+            return BadRequest("Publisher ID is required and must be greater than 0");
 
-        if (input.AuthorIds == null || input.AuthorIds.Count == 0)
-            return BadRequest("At least one author id is required");
-
-        if (input.AuthorIds.Any(authorId => authorId <= 0))
-            return BadRequest("All author ids must be greater than 0");
-
-        var result = await bookService.UpdateAsync(id, input);
-        logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
-
-        return result != null ? Ok(result) : NotFound();
+        try
+        {
+            var result = await bookService.UpdateAsync(id, input);
+            logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
+            return result != null ? Ok(result) : NotFound();
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogError("Error updating Book: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 
     /// <summary>
-    /// Удалить книгу из каталога библиотеки по её ID.
-    /// Возвращает 204 No Content при успехе.
+    /// Удаляет книгу из каталога по идентификатору.
+    /// При удалении также удаляются все связанные выпуски (экземпляры) книги.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор книги для удаления (должен быть > 0).</param>
-    /// <returns>204 No Content при успехе, или 400 Bad Request при неверном ID.</returns>
+    /// <param name="id">Уникальный идентификатор книги для удаления</param>
+    /// <returns>
+    /// 204 No Content при успешном удалении.
+    /// 400 Bad Request если ID некорректен (≤ 0).
+    /// 500 Internal Server Error в случае ошибки БД или обработки.
+    /// </returns>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
@@ -161,9 +189,16 @@ public class BooksController(
         if (id <= 0)
             return BadRequest("Id must be greater than 0");
 
-        await bookService.DeleteAsync(id);
-        logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
-
-        return NoContent();
+        try
+        {
+            await bookService.DeleteAsync(id);
+            logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            logger.LogError("Error deleting Book: {Message}", ex.Message);
+            return BadRequest(ex.Message);
+        }
     }
 }
