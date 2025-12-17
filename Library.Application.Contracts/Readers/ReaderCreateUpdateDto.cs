@@ -1,16 +1,23 @@
 ﻿namespace Library.Application.Contracts.Readers;
 
 /// <summary>
-/// DTO для создания или обновления информации о читателе.
+/// DTO для создания и обновления информации о читателе.
 /// Используется при приеме данных от клиента для создания нового читателя или обновления существующего.
+/// Содержит ID, устанавливаемый вручную при создании новой записи.
 /// </summary>
 public class ReaderCreateUpdateDto
 {
     /// <summary>
-    /// Полное имя читателя.
-    /// Обязательное поле.
+    /// Уникальный идентификатор читателя.
+    /// Устанавливается вручную при создании (обязателен и должен быть > 0).
     /// </summary>
-    public string FullName { get; set; } = default!;
+    public int Id { get; set; }
+
+    /// <summary>
+    /// Полное имя читателя.
+    /// Обязательное поле, не может быть пусто или содержать только пробелы.
+    /// </summary>
+    public required string FullName { get; set; }
 
     /// <summary>
     /// Адрес читателя.
@@ -26,6 +33,7 @@ public class ReaderCreateUpdateDto
 
     /// <summary>
     /// Дата регистрации читателя в системе библиотеки.
+    /// Обязательное поле, не может быть default (DateTime.MinValue).
     /// </summary>
     public DateTime RegistrationDate { get; set; }
 }

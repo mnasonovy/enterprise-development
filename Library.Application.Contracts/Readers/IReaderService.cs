@@ -21,8 +21,9 @@ public interface IReaderService : IApplicationService
 
     /// <summary>
     /// Создать нового читателя в системе.
+    /// ID должен быть установлен вручную и быть больше 0.
     /// </summary>
-    /// <param name="input">DTO с данными нового читателя (FullName, Address, Phone, RegistrationDate)</param>
+    /// <param name="input">DTO с данными нового читателя (FullName, Id, RegistrationDate обязательны)</param>
     /// <returns>DTO созданного читателя с заполненными данными</returns>
     public Task<ReaderDto> CreateAsync(ReaderCreateUpdateDto input);
 
@@ -38,6 +39,5 @@ public interface IReaderService : IApplicationService
     /// Удалить читателя из системы.
     /// </summary>
     /// <param name="id">Уникальный идентификатор читателя для удаления</param>
-    /// <returns>Задача удаления</returns>
     public Task DeleteAsync(int id);
 }
