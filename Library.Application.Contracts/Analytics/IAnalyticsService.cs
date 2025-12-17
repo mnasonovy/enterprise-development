@@ -1,48 +1,33 @@
-﻿using Library.Application.Contracts.Issues;
-using Library.Application.Contracts.Readers;
-using Library.Application.Contracts.Publishers;
-using Library.Application.Contracts.Books;
-
-namespace Library.Application.Contracts.Analytics;
+﻿namespace Library.Application.Contracts.Analytics;
 
 /// <summary>
-/// Интерфейс сервиса для аналитических запросов по библиотеке.
-/// Определяет контракт для выполнения сложных аналитических операций с данными о выданных книгах.
+/// Интерфейс для аналитического сервиса библиотеки.
+/// Определяет методы для получения различных аналитических отчетов.
 /// </summary>
-public interface IAnalyticsService : IApplicationService
+public interface IAnalyticsService
 {
     /// <summary>
-    /// Получить информацию о всех выданных книгах, упорядоченных по названию.
+    /// Получить все выданные книги в алфавитном порядке (уникальные названия).
     /// </summary>
-    /// <returns>Список всех выданных книг отсортированный по названию</returns>
-    public Task<IReadOnlyList<IssueDto>> GetIssuedBooksOrderedByTitleAsync();
+    public Task<IReadOnlyList<string>> GetIssuedBooksOrderedByTitleAsync();
 
     /// <summary>
-    /// Получить топ N читателей, которые прочитали больше всего книг за заданный период.
+    /// Получить топ 5 читателей по количеству взятых книг за последние 6 месяцев.
     /// </summary>
-    /// <param name="from">Начало периода поиска</param>
-    /// <param name="to">Конец периода поиска</param>
-    /// <param name="topCount">Количество читателей в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO читателей с количеством книг в периоде</returns>
-    public Task<IReadOnlyList<ReaderDto>> GetTopReadersByPeriodAsync(DateTime from, DateTime to, int topCount = 5);
+    public Task<IReadOnlyList<TopReaderDto>> GetTopReadersAsync();
 
     /// <summary>
-    /// Получить читателей, которые брали книги на самый длительный период, упорядоченных по полному имени.
+    /// Получить всех читателей с общим количеством дней выданных книг, отсортированных по имени.
     /// </summary>
-    /// <returns>Список DTO читателей упорядоченный по полному имени</returns>
-    public Task<IReadOnlyList<ReaderDto>> GetReadersWithLongestIssuePeriodAsync();
+    public Task<IReadOnlyList<ReaderDaysCountDto>> GetReadersByDaysCountAsync();
 
     /// <summary>
-    /// Получить топ N наиболее популярных издателей за последний год.
+    /// Получить топ 5 издательств по количеству выданных книг за последний год.
     /// </summary>
-    /// <param name="topCount">Количество издателей в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO издателей упорядоченный по популярности</returns>
-    public Task<IReadOnlyList<PublisherDto>> GetTopPublishersLastYearAsync(int topCount = 5);
+    public Task<IReadOnlyList<TopPublisherDto>> GetTopPublishersLastYearAsync();
 
     /// <summary>
-    /// Получить топ N наименее популярных книг за последний год.
+    /// Получить топ 5 наименее популярных книг за последний год.
     /// </summary>
-    /// <param name="topCount">Количество книг в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO книг упорядоченный по популярности в возрастающем порядке</returns>
-    public Task<IReadOnlyList<BookDto>> GetLeastPopularBooksLastYearAsync(int topCount = 5);
+    public Task<IReadOnlyList<TopBookDto>> GetTopPopularBooksLastYearAsync();
 }

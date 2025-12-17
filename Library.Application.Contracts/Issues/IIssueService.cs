@@ -1,43 +1,42 @@
 ﻿namespace Library.Application.Contracts.Issues;
 
 /// <summary>
-/// Интерфейс сервиса для CRUD-операций над выданными книгами (выдачи).
-/// Определяет контракт для работы с записями о выданных книгах.
+/// Интерфейс сервиса для управления выданными книгами.
+/// Определяет CRUD операции.
 /// </summary>
 public interface IIssueService : IApplicationService
 {
     /// <summary>
-    /// Получить запись о выдаче по идентификатору.
+    /// Получить выдачу по ID.
     /// </summary>
     /// <param name="id">Уникальный идентификатор выдачи</param>
-    /// <returns>DTO выдачи или null если запись не найдена</returns>
+    /// <returns>DTO выдачи или null если не найдена</returns>
     public Task<IssueDto?> GetAsync(int id);
 
     /// <summary>
-    /// Получить список всех выданных книг.
+    /// Получить все выданные книги.
     /// </summary>
-    /// <returns>Неизменяемый список DTO всех выдач</returns>
+    /// <returns>Список всех выдач</returns>
     public Task<IReadOnlyList<IssueDto>> GetListAsync();
 
     /// <summary>
-    /// Создать новую запись о выдаче книги.
+    /// Создать новую выдачу книги.
     /// </summary>
-    /// <param name="input">DTO с данными выдачи (BookId, ReaderId, IssueDate, DaysCount)</param>
-    /// <returns>DTO созданной выдачи с заполненными данными</returns>
+    /// <param name="input">Данные выдачи (BookId, ReaderId, IssueDate, DaysCount)</param>
+    /// <returns>DTO созданной выдачи</returns>
     public Task<IssueDto> CreateAsync(IssueCreateUpdateDto input);
 
     /// <summary>
-    /// Обновить существующую запись о выдаче.
+    /// Обновить выдачу (для отметки возврата).
     /// </summary>
-    /// <param name="id">Уникальный идентификатор выдачи для обновления</param>
-    /// <param name="input">DTO с новыми данными выдачи</param>
-    /// <returns>DTO обновленной выдачи или null если запись не найдена</returns>
+    /// <param name="id">ID выдачи для обновления</param>
+    /// <param name="input">Новые данные выдачи</param>
+    /// <returns>DTO обновленной выдачи или null если не найдена</returns>
     public Task<IssueDto?> UpdateAsync(int id, IssueCreateUpdateDto input);
 
     /// <summary>
-    /// Удалить запись о выдаче из системы.
+    /// Удалить выдачу из системы.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор выдачи для удаления</param>
-    /// <returns>Задача удаления</returns>
+    /// <param name="id">ID выдачи для удаления</param>
     public Task DeleteAsync(int id);
 }

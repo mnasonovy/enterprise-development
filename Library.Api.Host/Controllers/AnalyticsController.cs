@@ -1,15 +1,19 @@
 ﻿using Library.Application.Contracts.Analytics;
-using Library.Application.Contracts.Books;
-using Library.Application.Contracts.Issues;
-using Library.Application.Contracts.Publishers;
-using Library.Application.Contracts.Readers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Library.Api.Host.Controllers;
 
 /// <summary>
 /// Контроллер для выполнения аналитических запросов по библиотеке.
-/// Предоставляет REST API endpoints для получения аналитических данных (только GET методы).
+/// Предоставляет REST API endpoints для получения полной информации об аналитике:
+/// - Список выданных книг в алфавитном порядке
+/// - Топ читателей за последние 6 месяцев
+/// - Распределение читателей по дням выдачи книг
+/// - Топ издательств за последний год
+/// - Рейтинг наименее популярных книг за год
+/// 
+/// Все методы доступны только для чтения (GET запросы).
+/// Возвращает результаты в формате JSON с полной информацией для отчетности и анализа.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -18,111 +22,182 @@ public class AnalyticsController(
     ILogger<AnalyticsController> logger) : ControllerBase
 {
     /// <summary>
-    /// Получить информацию о выданных книгах, упорядоченные по названию.
-    /// GET: /api/analytics/issued-books
+    /// Получить все выданные книги в библиотеке в алфавитном порядке.
+    /// 
+    /// Методология:
+    /// - Собирает все записи о выданных книгах
+    /// - Извлекает уникальные названия книг (исключает дубликаты)
+    /// - Сортирует результат в алфавитном порядке от A до Z
+    /// 
+    /// Использование:
+    /// - Для составления полного каталога выданной литературы
+    /// - Для анализа разнообразия книг в обороте библиотеки
+    /// - Для проверки полноты каталога выданных издаций
+    /// 
+    /// GET: /api/analytics/issued-books-titles
     /// </summary>
-    /// <returns>Список всех выданных книг отсортированный по названию</returns>
-    [HttpGet("issued-books")]
-    [ProducesResponseType(200, Type = typeof(IReadOnlyList<IssueDto>))]
+    /// <returns>Список уникальных названий книг, отсортированный в алфавитном порядке (A-Z)</returns>
+    [HttpGet("issued-books-titles")]
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<string>))]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetIssuedBooksOrderedByTitleAsync()
     {
         logger.LogInformation("{Method} method is called", nameof(GetIssuedBooksOrderedByTitleAsync));
+
         var result = await analyticsService.GetIssuedBooksOrderedByTitleAsync();
+
         logger.LogInformation("{Method} method executed successfully with {Count} items",
             nameof(GetIssuedBooksOrderedByTitleAsync), result.Count);
+
         return Ok(result);
     }
 
     /// <summary>
-    /// Получить топ N читателей, которые взяли больше всего книг в заданный период.
-    /// GET: /api/analytics/top-readers?from={from}&to={to}&topCount={topCount}
+    /// Получить топ 5 читателей по количеству взятых книг за последние 6 месяцев.
+    /// 
+    /// Методология:
+    /// - Анализирует все выданные книги за последние 6 месяцев
+    /// - Группирует по читателям и подсчитывает количество выданных книг
+    /// - Выбирает 5 читателей с максимальным числом выданных экземпляров
+    /// - Сортирует в порядке убывания по количеству книг
+    /// 
+    /// Использование:
+    /// - Для выявления самых активных читателей
+    /// - Для поощрения и мотивации постоянных читателей
+    /// - Для анализа читательской активности за последний период
+    /// 
+    /// Возвращает:
+    /// - FullName: Полное имя читателя
+    /// - CountBooks: Количество взятых книг за 6 месяцев
+    /// 
+    /// GET: /api/analytics/top-readers
     /// </summary>
-    /// <param name="from">Начало периода поиска</param>
-    /// <param name="to">Конец периода поиска</param>
-    /// <param name="topCount">Количество читателей в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO читателей с наибольшим количеством выданных книг в периоде</returns>
+    /// <returns>Список топ 5 читателей с именем и количеством взятых книг, отсортированный по убыванию активности</returns>
     [HttpGet("top-readers")]
-    [ProducesResponseType(200, Type = typeof(IReadOnlyList<ReaderDto>))]
-    [ProducesResponseType(400)]
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<TopReaderDto>))]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> GetTopReadersByPeriodAsync(
-        [FromQuery] DateTime from,
-        [FromQuery] DateTime to,
-        [FromQuery] int topCount = 5)
+    public async Task<IActionResult> GetTopReadersAsync()
     {
-        logger.LogInformation("{Method} method is called with from={From}, to={To}, topCount={TopCount}",
-            nameof(GetTopReadersByPeriodAsync), from, to, topCount);
-        if (from == default || to == default)
-            return BadRequest("Both 'from' and 'to' dates are required");
-        if (from > to)
-            return BadRequest("'from' date must be less than or equal to 'to' date");
-        if (topCount <= 0)
-            return BadRequest("topCount must be greater than 0");
-        var result = await analyticsService.GetTopReadersByPeriodAsync(from, to, topCount);
+        logger.LogInformation("{Method} method is called", nameof(GetTopReadersAsync));
+
+        var result = await analyticsService.GetTopReadersAsync();
+
         logger.LogInformation("{Method} method executed successfully with {Count} items",
-            nameof(GetTopReadersByPeriodAsync), result.Count);
+            nameof(GetTopReadersAsync), result.Count);
+
         return Ok(result);
     }
 
     /// <summary>
-    /// Получить читателей, которые брали книги на самый длительный период, упорядоченных по полному имени.
-    /// GET: /api/analytics/longest-issue-period
+    /// Получить статистику читателей по общей длительности дней выданных книг.
+    /// 
+    /// Методология:
+    /// - Агрегирует все выданные книги для каждого читателя
+    /// - Суммирует количество дней для каждой выданной книги
+    /// - Вычисляет общее количество дней для каждого читателя
+    /// - Сортирует читателей по алфавиту по полному имени
+    /// 
+    /// Использование:
+    /// - Для анализа средней длительности использования книг читателями
+    /// - Для выявления читателей, которые дольше хранят книги
+    /// - Для оптимизации политики выдачи книг
+    /// - Для анализа привычек читателей по периоду удержания литературы
+    /// 
+    /// Возвращает:
+    /// - FullName: Полное имя читателя
+    /// - CountDays: Суммарное количество дней для всех выданных этому читателю книг
+    /// 
+    /// GET: /api/analytics/readers-by-days-count
     /// </summary>
-    /// <returns>Список DTO читателей упорядоченный по полному имени с максимальным средним периодом выдачи</returns>
-    [HttpGet("longest-issue-period")]
-    [ProducesResponseType(200, Type = typeof(IReadOnlyList<ReaderDto>))]
+    /// <returns>Список всех читателей с общим количеством дней выданных книг, отсортированный по алфавиту</returns>
+    [HttpGet("readers-by-days-count")]
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<ReaderDaysCountDto>))]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> GetReadersWithLongestIssuePeriodAsync()
+    public async Task<IActionResult> GetReadersByDaysCountAsync()
     {
-        logger.LogInformation("{Method} method is called", nameof(GetReadersWithLongestIssuePeriodAsync));
-        var result = await analyticsService.GetReadersWithLongestIssuePeriodAsync();
+        logger.LogInformation("{Method} method is called", nameof(GetReadersByDaysCountAsync));
+
+        var result = await analyticsService.GetReadersByDaysCountAsync();
+
         logger.LogInformation("{Method} method executed successfully with {Count} items",
-            nameof(GetReadersWithLongestIssuePeriodAsync), result.Count);
+            nameof(GetReadersByDaysCountAsync), result.Count);
+
         return Ok(result);
     }
 
     /// <summary>
-    /// Получить топ N наиболее популярных издателей за последний год.
-    /// GET: /api/analytics/top-publishers?topCount={topCount}
+    /// Получить топ 5 издательств по количеству выданных книг за последний год.
+    /// 
+    /// Методология:
+    /// - Фильтрует все выданные книги за последний год (365 дней)
+    /// - Группирует по издательствам через связь книга → издатель
+    /// - Суммирует количество выданных экземпляров по каждому издательству
+    /// - Выбирает топ 5 издательств с наибольшим числом выданий
+    /// - Сортирует в порядке убывания
+    /// 
+    /// Использование:
+    /// - Для выявления партнеров-издательств с наиболее востребованной литературой
+    /// - Для анализа популярности издательств в библиотеке
+    /// - Для планирования закупок и развития парка литературы
+    /// - Для составления рейтинга издательств по спросу читателей
+    /// 
+    /// Возвращает:
+    /// - PublisherName: Название издательства
+    /// - CountBooks: Количество выданных экземпляров за год
+    /// 
+    /// GET: /api/analytics/top-publishers
     /// </summary>
-    /// <param name="topCount">Количество издателей в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO издателей упорядоченный по количеству выданных книг в убывающем порядке</returns>
+    /// <returns>Список топ 5 издательств с названием и общим количеством выданных книг, отсортированный по популярности</returns>
     [HttpGet("top-publishers")]
-    [ProducesResponseType(200, Type = typeof(IReadOnlyList<PublisherDto>))]
-    [ProducesResponseType(400)]
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<TopPublisherDto>))]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> GetTopPublishersLastYearAsync([FromQuery] int topCount = 5)
+    public async Task<IActionResult> GetTopPublishersLastYearAsync()
     {
-        logger.LogInformation("{Method} method is called with topCount={TopCount}",
-            nameof(GetTopPublishersLastYearAsync), topCount);
-        if (topCount <= 0)
-            return BadRequest("topCount must be greater than 0");
-        var result = await analyticsService.GetTopPublishersLastYearAsync(topCount);
+        logger.LogInformation("{Method} method is called", nameof(GetTopPublishersLastYearAsync));
+
+        var result = await analyticsService.GetTopPublishersLastYearAsync();
+
         logger.LogInformation("{Method} method executed successfully with {Count} items",
             nameof(GetTopPublishersLastYearAsync), result.Count);
+
         return Ok(result);
     }
 
     /// <summary>
-    /// Получить топ N наименее популярных книг за последний год.
-    /// GET: /api/analytics/least-popular-books?topCount={topCount}
+    /// Получить топ 5 наименее популярных книг за последний год по количеству выданий.
+    /// 
+    /// Методология:
+    /// - Фильтрует все выданные книги за последний год (365 дней)
+    /// - Группирует по книгам и подсчитывает количество выданий
+    /// - Сортирует в порядке возрастания (меньше всего выданных)
+    /// - Выбирает 5 книг с наименьшим количеством выданий
+    /// 
+    /// Использование:
+    /// - Для выявления невостребованной литературы в фондах
+    /// - Для принятия решений о переводе книг в хранилище
+    /// - Для анализа соответствия фонда интересам читателей
+    /// - Для оптимизации состава библиотечного парка
+    /// - Для выявления книг, требующих переоценки или переиздания
+    /// 
+    /// Возвращает:
+    /// - Title: Название книги
+    /// - TimesIssued: Количество раз, которая книга была выдана (минимум за год)
+    /// 
+    /// GET: /api/analytics/top-popular-books
     /// </summary>
-    /// <param name="topCount">Количество книг в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO книг упорядоченный по количеству выданных копий в возрастающем порядке</returns>
-    [HttpGet("least-popular-books")]
-    [ProducesResponseType(200, Type = typeof(IReadOnlyList<BookDto>))]
-    [ProducesResponseType(400)]
+    /// <returns>Список топ 5 наименее популярных книг с названием и количеством выданий, отсортированный по возрастанию</returns>
+    [HttpGet("top-popular-books")]
+    [ProducesResponseType(200, Type = typeof(IReadOnlyList<TopBookDto>))]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> GetLeastPopularBooksLastYearAsync([FromQuery] int topCount = 5)
+    public async Task<IActionResult> GetTopPopularBooksLastYearAsync()
     {
-        logger.LogInformation("{Method} method is called with topCount={TopCount}",
-            nameof(GetLeastPopularBooksLastYearAsync), topCount);
-        if (topCount <= 0)
-            return BadRequest("topCount must be greater than 0");
-        var result = await analyticsService.GetLeastPopularBooksLastYearAsync(topCount);
+        logger.LogInformation("{Method} method is called", nameof(GetTopPopularBooksLastYearAsync));
+
+        var result = await analyticsService.GetTopPopularBooksLastYearAsync();
+
         logger.LogInformation("{Method} method executed successfully with {Count} items",
-            nameof(GetLeastPopularBooksLastYearAsync), result.Count);
+            nameof(GetTopPopularBooksLastYearAsync), result.Count);
+
         return Ok(result);
     }
 }

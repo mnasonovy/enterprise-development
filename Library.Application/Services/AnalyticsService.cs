@@ -3,13 +3,13 @@ using Library.Application.Contracts.Books;
 using Library.Application.Contracts.Issues;
 using Library.Application.Contracts.Readers;
 using Library.Application.Contracts.Publishers;
+using Microsoft.Extensions.Logging;
 
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для выполнения аналитических запросов по библиотеке.
-/// Реализует интерфейс IAnalyticsService, предоставляя сложные аналитические операции
-/// с данными о книгах, читателях, издателях и выданных книгах.
+/// Сервис для аналитических запросов библиотеки.
+/// Агрегирует данные и выполняет сложные LINQ-запросы.
 /// </summary>
 public class AnalyticsService : IAnalyticsService
 {
@@ -17,136 +17,165 @@ public class AnalyticsService : IAnalyticsService
     private readonly IIssueService _issueService;
     private readonly IReaderService _readerService;
     private readonly IPublisherService _publisherService;
+    private readonly ILogger<AnalyticsService> _logger;
 
     public AnalyticsService(
         IBookService bookService,
         IIssueService issueService,
         IReaderService readerService,
-        IPublisherService publisherService)
+        IPublisherService publisherService,
+        ILogger<AnalyticsService> logger)
     {
         _bookService = bookService;
         _issueService = issueService;
         _readerService = readerService;
         _publisherService = publisherService;
+        _logger = logger;
     }
 
     /// <summary>
-    /// Получить информацию о выданных книгах, упорядоченные по названию.
+    /// Получить все выданные книги в алфавитном порядке (без дубликатов).
     /// </summary>
-    /// <returns>Список всех выданных книг отсортированный по названию книги</returns>
-    public async Task<IReadOnlyList<IssueDto>> GetIssuedBooksOrderedByTitleAsync()
+    public async Task<IReadOnlyList<string>> GetIssuedBooksOrderedByTitleAsync()
     {
+        _logger.LogInformation("{Method} method is called", nameof(GetIssuedBooksOrderedByTitleAsync));
+
         var issues = await _issueService.GetListAsync();
+
         var issuedBooks = issues
-            .OrderBy(i => i.BookTitle)
+            .Select(i => i.BookTitle)
+            .Distinct()
+            .OrderBy(title => title)
             .ToList()
             .AsReadOnly();
+
+        _logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetIssuedBooksOrderedByTitleAsync), issuedBooks.Count);
+
         return issuedBooks;
     }
 
     /// <summary>
-    /// Получить топ N читателей, которые взяли больше всего книг в заданный период.
+    /// Получить топ 5 читателей за последние 6 месяцев.
     /// </summary>
-    /// <param name="from">Начало периода поиска</param>
-    /// <param name="to">Конец периода поиска</param>
-    /// <param name="topCount">Количество читателей в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO читателей с наибольшим количеством выданных книг в периоде</returns>
-    public async Task<IReadOnlyList<ReaderDto>> GetTopReadersByPeriodAsync(DateTime from, DateTime to, int topCount = 5)
+    public async Task<IReadOnlyList<TopReaderDto>> GetTopReadersAsync()
     {
+        _logger.LogInformation("{Method} method is called", nameof(GetTopReadersAsync));
+
         var readers = await _readerService.GetListAsync();
         var issues = await _issueService.GetListAsync();
+        var last6Months = DateTime.UtcNow.AddMonths(-6);
+
         var topReaders = issues
-            .Where(i => i.IssueDate >= from && i.IssueDate <= to)
+            .Where(i => i.IssueDate >= last6Months)
             .GroupBy(i => i.ReaderId)
-            .OrderByDescending(g => g.Count())
-            .Take(topCount)
-            .Select(g => readers.FirstOrDefault(r => r.Id == g.Key))
-            .Where(r => r != null)
+            .Select(g => new { ReaderId = g.Key, CountBooks = g.Count() })
+            .OrderByDescending(x => x.CountBooks)
+            .Take(5)
+            .Select(x => new TopReaderDto
+            {
+                FullName = readers.FirstOrDefault(r => r.Id == x.ReaderId)?.FullName ?? "Unknown",
+                CountBooks = x.CountBooks
+            })
             .ToList()
             .AsReadOnly();
-        return topReaders!;
+
+        _logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetTopReadersAsync), topReaders.Count);
+
+        return topReaders;
     }
 
     /// <summary>
-    /// Получить читателей, которые брали книги на самый длительный период, упорядоченных по полному имени.
+    /// Получить всех читателей со статистикой по дням выданных книг.
+    /// Отсортировано по имени.
     /// </summary>
-    /// <returns>Список DTO читателей упорядоченный по полному имени с максимальным средним периодом выдачи</returns>
-    public async Task<IReadOnlyList<ReaderDto>> GetReadersWithLongestIssuePeriodAsync()
+    public async Task<IReadOnlyList<ReaderDaysCountDto>> GetReadersByDaysCountAsync()
     {
+        _logger.LogInformation("{Method} method is called", nameof(GetReadersByDaysCountAsync));
+
         var readers = await _readerService.GetListAsync();
         var issues = await _issueService.GetListAsync();
-        var readersWithLongestPeriod = issues
+
+        var readersDaysCounts = issues
             .GroupBy(i => i.ReaderId)
-            .Select(g => new
+            .Select(g => new ReaderDaysCountDto
             {
-                ReaderId = g.Key,
-                AverageDays = g.Average(i => i.DaysCount)
+                FullName = readers.FirstOrDefault(r => r.Id == g.Key)?.FullName ?? "Unknown",
+                CountDays = g.Sum(i => i.DaysCount)
             })
-            .OrderByDescending(x => x.AverageDays)
-            .Select(x => readers.FirstOrDefault(r => r.Id == x.ReaderId))
-            .Where(r => r != null)
-            .OrderBy(r => r!.FullName)
+            .OrderBy(x => x.FullName)
             .ToList()
             .AsReadOnly();
-        return readersWithLongestPeriod!;
+
+        _logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetReadersByDaysCountAsync), readersDaysCounts.Count);
+
+        return readersDaysCounts;
     }
 
     /// <summary>
-    /// Получить топ N наиболее популярных издателей за последний год.
+    /// Получить топ 5 издательств за последний год.
     /// </summary>
-    /// <param name="topCount">Количество издателей в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO издателей упорядоченный по количеству выданных книг в убывающем порядке</returns>
-    public async Task<IReadOnlyList<PublisherDto>> GetTopPublishersLastYearAsync(int topCount = 5)
+    public async Task<IReadOnlyList<TopPublisherDto>> GetTopPublishersLastYearAsync()
     {
-        var publishers = await _publisherService.GetListAsync();
+        _logger.LogInformation("{Method} method is called", nameof(GetTopPublishersLastYearAsync));
+
         var books = await _bookService.GetListAsync();
         var issues = await _issueService.GetListAsync();
-        var lastYear = DateTime.Now.AddYears(-1);
+        var lastYear = DateTime.UtcNow.AddYears(-1);
+
         var topPublishers = issues
             .Where(i => i.IssueDate >= lastYear)
             .GroupBy(i => i.BookId)
-            .Select(g => new
-            {
-                BookId = g.Key,
-                Count = g.Count()
-            })
-            .Join(books,
-                issue => issue.BookId,
-                book => book.Id,
+            .Select(g => new { BookId = g.Key, Count = g.Count() })
+            .Join(books, issue => issue.BookId, book => book.Id,
                 (issue, book) => new { book.PublisherName, issue.Count })
             .GroupBy(x => x.PublisherName)
             .OrderByDescending(g => g.Sum(x => x.Count))
-            .Take(topCount)
-            .Select(g => publishers.FirstOrDefault(p => p.Name == g.Key))
-            .Where(p => p != null)
+            .Take(5)
+            .Select(g => new TopPublisherDto
+            {
+                PublisherName = g.Key ?? "Unknown",
+                CountBooks = g.Sum(x => x.Count)
+            })
             .ToList()
             .AsReadOnly();
-        return topPublishers!;
+
+        _logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetTopPublishersLastYearAsync), topPublishers.Count);
+
+        return topPublishers;
     }
 
     /// <summary>
-    /// Получить топ N наименее популярных книг за последний год.
+    /// Получить топ 5 наименее популярных книг за последний год.
     /// </summary>
-    /// <param name="topCount">Количество книг в топе (по умолчанию 5)</param>
-    /// <returns>Список DTO книг упорядоченный по количеству выданных копий в возрастающем порядке</returns>
-    public async Task<IReadOnlyList<BookDto>> GetLeastPopularBooksLastYearAsync(int topCount = 5)
+    public async Task<IReadOnlyList<TopBookDto>> GetTopPopularBooksLastYearAsync()
     {
+        _logger.LogInformation("{Method} method is called", nameof(GetTopPopularBooksLastYearAsync));
+
         var books = await _bookService.GetListAsync();
         var issues = await _issueService.GetListAsync();
-        var lastYear = DateTime.Now.AddYears(-1);
-        var leastPopularBooks = books
-            .Select(b => new
+        var lastYear = DateTime.UtcNow.AddYears(-1);
+
+        var leastPopularBooks = issues
+            .Where(i => i.IssueDate >= lastYear)
+            .GroupBy(i => i.BookId)
+            .Select(g => new { BookId = g.Key, TimesIssued = g.Count() })
+            .OrderBy(x => x.TimesIssued)
+            .Take(5)
+            .Select(x => new TopBookDto
             {
-                Book = b,
-                IssueCount = issues
-                    .Where(i => i.BookId == b.Id && i.IssueDate >= lastYear)
-                    .Count()
+                Title = books.FirstOrDefault(b => b.Id == x.BookId)?.Title ?? "Unknown",
+                TimesIssued = x.TimesIssued
             })
-            .OrderBy(x => x.IssueCount)
-            .Take(topCount)
-            .Select(x => x.Book)
             .ToList()
             .AsReadOnly();
+
+        _logger.LogInformation("{Method} method executed successfully with {Count} items",
+            nameof(GetTopPopularBooksLastYearAsync), leastPopularBooks.Count);
+
         return leastPopularBooks;
     }
 }

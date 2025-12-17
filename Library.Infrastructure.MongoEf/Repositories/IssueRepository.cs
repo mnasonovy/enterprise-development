@@ -9,6 +9,7 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 /// <summary>
 /// Репозиторий для работы с выданными книгами (Issue) через MongoDB EF Core.
 /// Предоставляет методы для выполнения CRUD операций над сущностью Issue.
+/// ВАЖНО: MongoDB EF Core НЕ поддерживает Include(), используем Entry().LoadAsync() вместо этого.
 /// </summary>
 public class IssueRepository
 {
@@ -23,42 +24,67 @@ public class IssueRepository
 
     /// <summary>
     /// Получить выданную книгу по идентификатору.
+    /// Загружает связанные сущности Book и Reader для полной информации.
+    /// Использует Entry().LoadAsync() вместо Include(), так как MongoDB EF Core не поддерживает Include().
     /// </summary>
     /// <param name="id">Уникальный идентификатор выдачи</param>
-    /// <returns>Сущность Issue если найдена; null если запись не существует</returns>
-    public async Task<Issue?> ReadAsync(int id)
+    /// <returns>Сущность Issue если найдена с загруженными Book и Reader; null если запись не существует</returns>
+    public async Task<Issue?> GetAsync(int id)
     {
-        return await _issues
-            .AsNoTracking()
-            .Include(i => i.Book)
-            .Include(i => i.Reader)
-            .FirstOrDefaultAsync(i => i.Id == id);
+        var issue = await _issues.FirstOrDefaultAsync(i => i.Id == id);
+
+        if (issue is null)
+            return null;
+
+        // Загружаем связанные сущности
+        await _context.Entry(issue).Reference(i => i.Book).LoadAsync();
+        await _context.Entry(issue).Reference(i => i.Reader).LoadAsync();
+
+        return issue;
     }
 
     /// <summary>
     /// Получить список всех выданных книг из базы данных.
+    /// Загружает связанные сущности Book и Reader для каждой выдачи.
+    /// Использует Entry().LoadAsync() вместо Include(), так как MongoDB EF Core не поддерживает Include().
     /// </summary>
     /// <returns>Неизменяемый список всех выданных книг с загруженными Book и Reader</returns>
-    public async Task<IReadOnlyList<Issue>> ReadAllAsync()
+    public async Task<IReadOnlyList<Issue>> GetListAsync()
     {
-        var result = await _issues
-            .AsNoTracking()
-            .Include(i => i.Book)
-            .Include(i => i.Reader)
-            .ToListAsync();
-        return result.AsReadOnly();
+        var issues = await _issues.ToListAsync();
+
+        // Загружаем Book и Reader для каждой Issue
+        foreach (var issue in issues)
+        {
+            await _context.Entry(issue).Reference(i => i.Book).LoadAsync();
+            await _context.Entry(issue).Reference(i => i.Reader).LoadAsync();
+        }
+
+        return issues.AsReadOnly();
     }
 
     /// <summary>
     /// Создать новую выданную книгу в базе данных.
+    /// Автоматически загружает связанные сущности Book и Reader для корректного маппинга в DTO.
+    /// Использует Entry().LoadAsync() вместо Include().
     /// </summary>
     /// <param name="entity">Сущность Issue для сохранения</param>
-    /// <returns>Созданная сущность Issue с заполненным идентификатором</returns>
+    /// <returns>Созданная сущность Issue с заполненным идентификатором и загруженными связанными сущностями</returns>
     public async Task<Issue> CreateAsync(Issue entity)
     {
         await _issues.AddAsync(entity);
         await _context.SaveChangesAsync();
-        return entity;
+
+        // Перезагружаем созданную Issue с Book и Reader для маппинга
+        var createdIssue = await _issues.FirstOrDefaultAsync(i => i.Id == entity.Id);
+
+        if (createdIssue is not null)
+        {
+            await _context.Entry(createdIssue).Reference(i => i.Book).LoadAsync();
+            await _context.Entry(createdIssue).Reference(i => i.Reader).LoadAsync();
+        }
+
+        return createdIssue!;
     }
 
     /// <summary>
@@ -69,26 +95,29 @@ public class IssueRepository
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _issues.FirstOrDefaultAsync(i => i.Id == id);
+
         if (entity is null)
             return false;
 
         _issues.Remove(entity);
         await _context.SaveChangesAsync();
+
         return true;
     }
 
     /// <summary>
     /// Обновить данные существующей выданной книги.
+    /// Загружает существующую запись с связанными сущностями и обновляет её параметры.
+    /// Возвращает обновленную запись с загруженными Book и Reader для маппинга в DTO.
+    /// Использует Entry().LoadAsync() вместо Include().
     /// </summary>
     /// <param name="entity">Сущность Issue с обновленными данными</param>
-    /// <returns>Обновленная сущность Issue; null если запись не найдена</returns>
+    /// <returns>Обновленная сущность Issue с загруженными связанными сущностями; null если запись не найдена</returns>
     public async Task<Issue?> UpdateAsync(Issue entity)
     {
-        // Загружаем существующую Issue с Book и Reader
-        var existing = await _issues
-            .Include(i => i.Book)
-            .Include(i => i.Reader)
-            .FirstOrDefaultAsync(i => i.Id == entity.Id);
+        // Загружаем существующую Issue
+        var existing = await _issues.FirstOrDefaultAsync(i => i.Id == entity.Id);
+
         if (existing is null)
             return null;
 
@@ -101,6 +130,16 @@ public class IssueRepository
 
         _issues.Update(existing);
         await _context.SaveChangesAsync();
-        return existing;
+
+        // Перезагружаем обновленную Issue для гарантии загрузки Book и Reader
+        var updatedIssue = await _issues.FirstOrDefaultAsync(i => i.Id == entity.Id);
+        if (updatedIssue is null)
+        if (updatedIssue is not null)
+        {
+            await _context.Entry(updatedIssue).Reference(i => i.Book).LoadAsync();
+            await _context.Entry(updatedIssue).Reference(i => i.Reader).LoadAsync();
+        }
+
+        return updatedIssue;
     }
 }

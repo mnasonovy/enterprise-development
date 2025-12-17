@@ -1,39 +1,26 @@
 ﻿namespace Library.Application.Contracts.Issues;
 
 /// <summary>
-/// DTO для создания и обновления записи о выдаче книги.
-/// Используется при создании новой выдачи и обновлении статуса возврата.
+/// DTO для создания и обновления выданной книги.
+/// Используется в POST (создание) и PUT (обновление/возврат) запросах.
 /// </summary>
 public class IssueCreateUpdateDto
 {
-    /// <summary>
-    /// Идентификатор книги, которая выдается.
-    /// Обязательное поле.
-    /// </summary>
+    /// <summary>Уникальный идентификатор выдачи (обязателен для MongoDB)</summary>
+    public int Id { get; set; }
+
+    /// <summary>ID книги, которая выдается (обязателен)</summary>
     public int BookId { get; set; }
 
-    /// <summary>
-    /// Идентификатор читателя, который берет книгу.
-    /// Обязательное поле.
-    /// </summary>
+    /// <summary>ID читателя, который берет книгу (обязателен)</summary>
     public int ReaderId { get; set; }
 
-    /// <summary>
-    /// Дата выдачи книги читателю.
-    /// Обязательное поле.
-    /// </summary>
+    /// <summary>Дата выдачи книги (обязательна)</summary>
     public DateTime IssueDate { get; set; }
 
-    /// <summary>
-    /// Количество дней, на которые выдается книга.
-    /// Обязательное поле.
-    /// </summary>
+    /// <summary>Количество дней выдачи (обязательно, > 0)</summary>
     public int DaysCount { get; set; }
 
-    /// <summary>
-    /// Фактическая дата возврата книги.
-    /// Null при создании выдачи (книга еще не возвращена).
-    /// Устанавливается при возврате книги.
-    /// </summary>
+    /// <summary>Дата возврата книги (опционально, null если не возвращена)</summary>
     public DateTime? ReturnDate { get; set; }
 }

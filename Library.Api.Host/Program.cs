@@ -15,12 +15,9 @@ using MongoDB.Driver;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ========================================
-// КОНФИГУРАЦИЯ ЛОГИРОВАНИЯ
-// ========================================
 /// <summary>
-/// Настраивает логирование для приложения.
-/// Очищает стандартные провайдеры и добавляет логирование в консоль с уровнем Information.
+/// Конфигурация логирования приложения.
+/// Настраивает консольный вывод с уровнем Information для отслеживания операций.
 /// </summary>
 builder.Services.AddLogging(configure =>
 {
@@ -29,13 +26,10 @@ builder.Services.AddLogging(configure =>
     configure.SetMinimumLevel(LogLevel.Information);
 });
 
-// ========================================
-// КОНФИГУРАЦИЯ БАЗЫ ДАННЫХ MONGODB
-// ========================================
 /// <summary>
-/// Подключает MongoDB Entity Framework Core к приложению.
-/// Используется строка подключения из конфигурации или локальное подключение по умолчанию.
-/// retryWrites=false и w=1 используются из-за ограничений MongoDB в Docker контейнере.
+/// Подключение MongoDB с использованием Entity Framework Core.
+/// Подключение берется из конфигурации или использует localhost.
+/// Database: LibraryDb, retryWrites=false для Docker совместимости.
 /// </summary>
 var mongoConnectionString = builder.Configuration.GetConnectionString("mongodb")
     ?? "mongodb://localhost:27017/?retryWrites=false&w=1";
@@ -45,12 +39,9 @@ builder.Services.AddDbContext<MongoDbContext>(options =>
     options.UseMongoDB(mongoConnectionString, "LibraryDb");
 });
 
-// ========================================
-// КОНФИГУРАЦИЯ AUTOMAPPER
-// ========================================
 /// <summary>
-/// Регистрирует AutoMapper для преобразования объектов между моделями и DTO.
-/// Подключает MappingProfile и автоматически обнаруживает профили в сборках.
+/// Регистрация AutoMapper для преобразования Domain моделей в DTO.
+/// MappingProfile содержит все двусторонние маппинги (ReverseMap).
 /// </summary>
 builder.Services.AddAutoMapper(config =>
 {
@@ -58,12 +49,16 @@ builder.Services.AddAutoMapper(config =>
     config.AddMaps(AppDomain.CurrentDomain.GetAssemblies());
 });
 
-// ========================================
-// РЕГИСТРАЦИЯ РЕПОЗИТОРИЕВ
-// ========================================
 /// <summary>
-/// Регистрирует все репозитории как Scoped сервисы.
-/// Каждый запрос получает новый экземпляр репозитория.
+/// Регистрация репозиториев как Scoped сервисы.
+/// Каждый репозиторий отвечает за CRUD операции одной сущности.
+/// Lifecycle: создается новый экземпляр на каждый HTTP запрос.
+/// - BookRepository: операции с книгами
+/// - AuthorRepository: операции с авторами
+/// - ReaderRepository: операции с читателями
+/// - IssueRepository: операции с выданными книгами
+/// - PublisherRepository: операции с издателями
+/// - BookTypeRepository: операции с типами книг
 /// </summary>
 builder.Services.AddScoped<BookRepository>();
 builder.Services.AddScoped<AuthorRepository>();
@@ -72,12 +67,16 @@ builder.Services.AddScoped<IssueRepository>();
 builder.Services.AddScoped<PublisherRepository>();
 builder.Services.AddScoped<BookTypeRepository>();
 
-// ========================================
-// РЕГИСТРАЦИЯ СЕРВИСОВ ПРИЛОЖЕНИЯ
-// ========================================
 /// <summary>
-/// Регистрирует все сервисы приложения как Scoped зависимости.
-/// Сервисы реализуют интерфейсы контрактов для работы контроллеров.
+/// Регистрация сервисов приложения как Scoped зависимости.
+/// Сервисы содержат бизнес-логику и используют репозитории для доступа к БД.
+/// - IBookService: управление книгами (CRUD + поиск)
+/// - IAuthorService: управление авторами
+/// - IReaderService: управление читателями и их данными
+/// - IIssueService: управление выданными книгами и сроками возврата
+/// - IPublisherService: управление издателями
+/// - IBookTypeService: управление типами книг
+/// - IAnalyticsService: аналитические отчеты и статистика
 /// </summary>
 builder.Services.AddScoped<IBookService, BookService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
@@ -87,21 +86,16 @@ builder.Services.AddScoped<IPublisherService, PublisherService>();
 builder.Services.AddScoped<IBookTypeService, BookTypeService>();
 builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
 
-// ========================================
-// РЕГИСТРАЦИЯ КОНТРОЛЛЕРОВ
-// ========================================
 /// <summary>
-/// Добавляет маршрутизацию контроллеров для REST API.
+/// Регистрация контроллеров и маршрутизации REST API.
+/// Автоматически обнаруживает все контроллеры, помеченные [ApiController].
 /// </summary>
 builder.Services.AddControllers();
 
-// ========================================
-// КОНФИГУРАЦИЯ SWAGGER / OPENAPI
-// ========================================
 /// <summary>
-/// Настраивает Swagger для интерактивной документации API.
-/// Подключает XML комментарии для полной документации методов контроллеров.
-/// Отображает метаинформацию об API и контакты поддержки.
+/// Конфигурация Swagger для интерактивной документации API.
+/// Генерирует OpenAPI схему и предоставляет UI для тестирования методов.
+/// XML комментарии из документации подключаются автоматически.
 /// </summary>
 builder.Services.AddSwaggerGen(c =>
 {
@@ -109,7 +103,12 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Library Management API",
         Version = "v1",
-        Description = "REST API для управления библиотекой. Поддерживает полный набор CRUD операций для книг, авторов, читателей, выпусков, издателей и типов книг.",
+        Description = "REST API для управления библиотекой\n\n" +
+                      "Функциональность:\n" +
+                      "- 📚 Управление книгами, авторами, читателями\n" +
+                      "- 📖 Отслеживание выданных книг и сроков возврата\n" +
+                      "- 🏢 Издатели и типы книг\n" +
+                      "- 📊 Аналитические отчеты и статистика",
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
             Name = "Library Support",
@@ -117,7 +116,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
-    // Подключает XML комментарии из сборки для документации в Swagger
     var xmlFile = Path.Combine(AppContext.BaseDirectory, "Library.Api.Host.xml");
     if (File.Exists(xmlFile))
         c.IncludeXmlComments(xmlFile);
@@ -125,31 +123,46 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-// ========================================
-// ПОСТРОЕНИЕ И ЗАПУСК ПРИЛОЖЕНИЯ
-// ========================================
 /// <summary>
-/// Строит приложение и настраивает middleware pipeline.
+/// Построение приложения и настройка middleware pipeline.
+/// Middleware обрабатывает HTTP запросы в следующем порядке:
+/// 1. HttpsRedirection - перенаправление на HTTPS
+/// 2. Authorization - проверка прав доступа
+/// 3. MapControllers - маршрутизация к контроллерам
+/// 4. Swagger (только разработка) - интерактивная документация
 /// </summary>
 var app = builder.Build();
 
-// Включает Swagger только в режиме разработки
+/// <summary>
+/// Включение Swagger только в режиме разработки.
+/// В production Swagger отключается по соображениям безопасности.
+/// Доступен по адресу https://localhost:7000/
+/// </summary>
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library API v1");
-        c.RoutePrefix = string.Empty; // Swagger будет доступен по адресу /
+        c.RoutePrefix = string.Empty;
     });
 }
 
-// Middleware pipeline для обработки запросов
+/// <summary>
+/// Включение middleware для обработки запросов.
+/// - UseHttpsRedirection: перенаправляет HTTP на HTTPS
+/// - UseAuthorization: проверка авторизации
+/// - MapControllers: маршрутизация к контроллерам
+/// </summary>
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 
 /// <summary>
-/// Запускает приложение и начинает прослушивание входящих запросов.
+/// Запуск приложения и начало прослушивания входящих HTTP(S) запросов.
+/// Порты:
+/// - HTTPS: https://localhost:7000
+/// - HTTP: http://localhost:5000
+/// - Swagger UI: https://localhost:7000 (режим разработки)
 /// </summary>
 app.Run();
