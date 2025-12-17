@@ -1,43 +1,42 @@
 ﻿namespace Library.Application.Contracts.Authors;
 
 /// <summary>
-/// Интерфейс сервиса для CRUD-операций над авторами
-/// Определяет контракт для работы с авторами в приложении
+/// Интерфейс сервиса для управления авторами.
+/// Определяет контракт для выполнения CRUD операций над авторами в системе.
 /// </summary>
 public interface IAuthorService : IApplicationService
 {
     /// <summary>
-    /// Получить автора по идентификатору
+    /// Получает автора по уникальному идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор автора</param>
-    /// <returns>DTO автора или null если автор не найден</returns>
+    /// <param name="id">Идентификатор автора для поиска.</param>
+    /// <returns>DTO автора, если найден; null если автор не существует.</returns>
     public Task<AuthorDto?> GetAsync(int id);
 
     /// <summary>
-    /// Получить список всех авторов
+    /// Получает список всех авторов из базы данных.
     /// </summary>
-    /// <returns>Неизменяемый список DTO всех авторов</returns>
+    /// <returns>Коллекция DTO всех авторов. Если авторов нет, возвращает пустой список.</returns>
     public Task<IReadOnlyList<AuthorDto>> GetListAsync();
 
     /// <summary>
-    /// Создать нового автора в системе
+    /// Создаёт нового автора в базе данных.
     /// </summary>
-    /// <param name="input">DTO с данными нового автора (должен содержать Id, LastName)</param>
-    /// <returns>DTO созданного автора с заполненными данными</returns>
+    /// <param name="input">DTO с данными нового автора (фамилия обязательна).</param>
+    /// <returns>DTO созданного автора с назначенным идентификатором.</returns>
     public Task<AuthorDto> CreateAsync(AuthorDto input);
 
     /// <summary>
-    /// Обновить существующего автора
+    /// Обновляет информацию об существующем авторе.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор автора для обновления</param>
-    /// <param name="input">DTO с новыми данными автора</param>
-    /// <returns>DTO обновленного автора или null если автор не найден</returns>
+    /// <param name="id">Идентификатор автора для обновления.</param>
+    /// <param name="input">DTO с новыми данными автора.</param>
+    /// <returns>Обновленный DTO автора, если успешно; null если автор не найден.</returns>
     public Task<AuthorDto?> UpdateAsync(int id, AuthorDto input);
 
     /// <summary>
-    /// Удалить автора из системы
+    /// Удаляет автора из базы данных по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор автора для удаления</param>
-    /// <returns>Задача удаления</returns>
+    /// <param name="id">Идентификатор автора для удаления.</param>
     public Task DeleteAsync(int id);
 }
