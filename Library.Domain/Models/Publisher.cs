@@ -1,22 +1,29 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a publisher entity.
+/// Сущность издателя библиотеки. Содержит информацию об издательстве, 
+/// которое выпустило одну или несколько книг в каталоге библиотеки.
 /// </summary>
 public class Publisher
 {
     /// <summary>
-    /// Gets or sets the unique identifier of the publisher.
+    /// Уникальный идентификатор издателя в системе.
+    /// Автоматически генерируется при создании записи в базе данных.
+    /// Используется как первичный ключ.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the name of the publisher (e.g., "Eksmo").
+    /// Название издательства (например: "Eksmo", "Penguin Random House", "AST").
+    /// Требуемое поле - не может быть null или пустым.
+    /// Используется для идентификации и отображения издателя пользователям.
     /// </summary>
     public required string Name { get; set; }
 
     /// <summary>
-    /// Navigation property for books published by this publisher.
+    /// Навигационное свойство для доступа к книгам, опубликованным этим издательством.
+    /// Отношение один-ко-многим: один издатель может выпустить много книг.
+    /// Инициализируется пустым списком при создании объекта.
     /// </summary>
     public List<Book> Books { get; set; } = [];
 }

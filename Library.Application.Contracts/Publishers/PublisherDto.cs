@@ -1,11 +1,23 @@
 ﻿namespace Library.Application.Contracts.Publishers;
 
 /// <summary>
-/// DTO for reading publisher information.
+/// DTO для передачи информации об издателе от сервера к клиенту.
+/// Используется в GET запросах для отправки данных об издательстве в API ответе.
+/// Содержит только данные для чтения (read-only информация).
 /// </summary>
 public class PublisherDto
 {
+    /// <summary>
+    /// Уникальный идентификатор издателя в системе.
+    /// Автоматически генерируется при создании издателя в базе данных.
+    /// Используется для идентификации при операциях обновления и удаления.
+    /// </summary>
     public int Id { get; set; }
 
-    public string Name { get; set; } = default!;
+    /// <summary>
+    /// Название издательства (например: "Penguin Random House", "AST", "Eksmo").
+    /// Отображается пользователям в интерфейсе приложения.
+    /// Никогда не бывает null благодаря проверкам на уровне сервиса.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 }

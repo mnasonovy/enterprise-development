@@ -9,7 +9,7 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 /// <summary>
 /// Репозиторий для работы с издателями через MongoDB EF Core.
 /// Заменяет старый MongoDBDriver подход на современный EF Core.
-/// 🔧 ИСПРАВЛЕНО: Добавлены .Include() для Books!
+/// Включает автоматическую загрузку связанных Book через Include.
 /// </summary>
 public class PublisherRepository
 {
@@ -23,26 +23,29 @@ public class PublisherRepository
     }
 
     /// <summary>
-    /// Получить издателя по идентификатору.
-    /// 🔧 ИСПРАВЛЕНО: Include для Books
+    /// Получить издателя по идентификатору с включением связанных книг.
+    /// Использует AsNoTracking для оптимизации при только чтении данных.
+    /// Include загружает коллекцию Books для полноты данных издателя.
     /// </summary>
     public async Task<Publisher?> ReadAsync(int id)
     {
         return await _publishers
             .AsNoTracking()
-            .Include(p => p.Books)  // 🔧 ДОБАВЛЕНО
+            .Include(p => p.Books)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     /// <summary>
-    /// Получить список всех издателей из базы данных.
-    /// 🔧 ИСПРАВЛЕНО: Include для Books
+    /// Получить список всех издателей из базы данных с их книгами.
+    /// AsNoTracking улучшает производительность при чтении большого списка.
+    /// Include для Books загружает все связанные книги каждого издателя.
+    /// Возвращает читаемый (доступный только для чтения) список.
     /// </summary>
     public async Task<IReadOnlyList<Publisher>> ReadAllAsync()
     {
         var result = await _publishers
             .AsNoTracking()
-            .Include(p => p.Books)  // 🔧 ДОБАВЛЕНО
+            .Include(p => p.Books)
             .ToListAsync();
 
         return result.AsReadOnly();
@@ -50,6 +53,8 @@ public class PublisherRepository
 
     /// <summary>
     /// Создать нового издателя в базе данных.
+    /// Добавляет издателя в DbSet, затем сохраняет изменения в MongoDB.
+    /// Возвращает созданного издателя с установленным Id.
     /// </summary>
     public async Task<Publisher> CreateAsync(Publisher entity)
     {
@@ -60,6 +65,8 @@ public class PublisherRepository
 
     /// <summary>
     /// Удалить издателя из базы данных по идентификатору.
+    /// Проверяет существование издателя перед удалением.
+    /// Возвращает true если удаление успешно, false если издатель не найден.
     /// </summary>
     public async Task<bool> DeleteAsync(int id)
     {
@@ -74,6 +81,8 @@ public class PublisherRepository
 
     /// <summary>
     /// Обновить данные существующего издателя.
+    /// Проверяет наличие издателя перед обновлением.
+    /// Возвращает обновленного издателя если успешно, null если издатель не найден.
     /// </summary>
     public async Task<Publisher?> UpdateAsync(Publisher entity)
     {

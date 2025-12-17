@@ -6,8 +6,9 @@ using Library.Infrastructure.MongoEf.Repositories;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для CRUD-операций над издателями.
-/// 🔧 ИСПРАВЛЕНО: Используется AutoMapper!
+/// Сервис для управления издателями.
+/// Реализует интерфейс IPublisherService, обеспечивая выполнение CRUD операций над издателями.
+/// Использует AutoMapper для преобразования между Domain моделями и DTO.
 /// </summary>
 public class PublisherService : IPublisherService
 {
@@ -21,9 +22,10 @@ public class PublisherService : IPublisherService
     }
 
     /// <summary>
-    /// Получить издателя по идентификатору.
-    /// 🔧 Include загружает Books!
+    /// Получает издателя по уникальному идентификатору.
     /// </summary>
+    /// <param name="id">Идентификатор издателя для поиска.</param>
+    /// <returns>DTO издателя, если найден; null если издатель не существует.</returns>
     public async Task<PublisherDto?> GetAsync(int id)
     {
         var publisher = await _publisherRepository.ReadAsync(id);
@@ -31,9 +33,9 @@ public class PublisherService : IPublisherService
     }
 
     /// <summary>
-    /// Получить список всех издателей.
-    /// 🔧 Include загружает Books!
+    /// Получает список всех издателей.
     /// </summary>
+    /// <returns>Коллекция DTO всех издателей. Если издателей нет, возвращает пустой список.</returns>
     public async Task<IReadOnlyList<PublisherDto>> GetListAsync()
     {
         var publishers = await _publisherRepository.ReadAllAsync();
@@ -41,8 +43,10 @@ public class PublisherService : IPublisherService
     }
 
     /// <summary>
-    /// Создать нового издателя.
+    /// Создаёт нового издателя в базе данных.
     /// </summary>
+    /// <param name="input">DTO с данными нового издателя (Name обязателен).</param>
+    /// <returns>DTO созданного издателя с назначенным идентификатором.</returns>
     public async Task<PublisherDto> CreateAsync(PublisherCreateUpdateDto input)
     {
         var publisher = _mapper.Map<Publisher>(input);
@@ -51,8 +55,11 @@ public class PublisherService : IPublisherService
     }
 
     /// <summary>
-    /// Обновить существующего издателя.
+    /// Обновляет информацию об существующем издателе.
     /// </summary>
+    /// <param name="id">Идентификатор издателя для обновления.</param>
+    /// <param name="input">DTO с новыми данными издателя.</param>
+    /// <returns>Обновленный DTO издателя, если успешно; null если издатель не найден.</returns>
     public async Task<PublisherDto?> UpdateAsync(int id, PublisherCreateUpdateDto input)
     {
         var existing = await _publisherRepository.ReadAsync(id);
@@ -65,8 +72,9 @@ public class PublisherService : IPublisherService
     }
 
     /// <summary>
-    /// Удалить издателя по идентификатору.
+    /// Удаляет издателя из базы данных по идентификатору.
     /// </summary>
+    /// <param name="id">Идентификатор издателя для удаления.</param>
     public async Task DeleteAsync(int id)
     {
         await _publisherRepository.DeleteAsync(id);
