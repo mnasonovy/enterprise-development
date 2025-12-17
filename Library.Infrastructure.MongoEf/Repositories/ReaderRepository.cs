@@ -8,8 +8,7 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
 /// Репозиторий для работы с читателями через MongoDB EF Core.
-/// Заменяет старый MongoDBDriver подход на современный EF Core.
-/// 🔧 ИСПРАВЛЕНО: Добавлены .Include() для Issues!
+/// Предоставляет методы для выполнения CRUD операций над сущностью Reader.
 /// </summary>
 public class ReaderRepository
 {
@@ -24,33 +23,35 @@ public class ReaderRepository
 
     /// <summary>
     /// Получить читателя по идентификатору.
-    /// 🔧 ИСПРАВЛЕНО: Include для Issues
     /// </summary>
+    /// <param name="id">Уникальный идентификатор читателя</param>
+    /// <returns>Сущность Reader если найдена; null если читатель не существует</returns>
     public async Task<Reader?> ReadAsync(int id)
     {
         return await _readers
             .AsNoTracking()
-            .Include(r => r.Issues)  // 🔧 ДОБАВЛЕНО
+            .Include(r => r.Issues)
             .FirstOrDefaultAsync(r => r.Id == id);
     }
 
     /// <summary>
     /// Получить список всех читателей из базы данных.
-    /// 🔧 ИСПРАВЛЕНО: Include для Issues
     /// </summary>
+    /// <returns>Неизменяемый список всех читателей с загруженными Issues</returns>
     public async Task<IReadOnlyList<Reader>> ReadAllAsync()
     {
         var result = await _readers
             .AsNoTracking()
-            .Include(r => r.Issues)  // 🔧 ДОБАВЛЕНО
+            .Include(r => r.Issues)
             .ToListAsync();
-
         return result.AsReadOnly();
     }
 
     /// <summary>
     /// Создать нового читателя в базе данных.
     /// </summary>
+    /// <param name="entity">Сущность Reader для сохранения</param>
+    /// <returns>Созданная сущность Reader с заполненным идентификатором</returns>
     public async Task<Reader> CreateAsync(Reader entity)
     {
         await _readers.AddAsync(entity);
@@ -61,6 +62,8 @@ public class ReaderRepository
     /// <summary>
     /// Удалить читателя из базы данных по идентификатору.
     /// </summary>
+    /// <param name="id">Уникальный идентификатор читателя для удаления</param>
+    /// <returns>true если читатель успешно удален; false если читатель не найден</returns>
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _readers.FirstOrDefaultAsync(r => r.Id == id);
@@ -75,6 +78,8 @@ public class ReaderRepository
     /// <summary>
     /// Обновить данные существующего читателя.
     /// </summary>
+    /// <param name="entity">Сущность Reader с обновленными данными</param>
+    /// <returns>Обновленная сущность Reader; null если читатель не найден</returns>
     public async Task<Reader?> UpdateAsync(Reader entity)
     {
         var exists = await _readers.AnyAsync(r => r.Id == entity.Id);

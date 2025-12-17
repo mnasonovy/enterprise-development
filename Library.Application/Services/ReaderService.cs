@@ -6,8 +6,9 @@ using Library.Infrastructure.MongoEf.Repositories;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для CRUD-операций над читателями.
-/// 🔧 ИСПРАВЛЕНО: Используется AutoMapper!
+/// Сервис для управления читателями.
+/// Реализует интерфейс IReaderService, обеспечивая выполнение CRUD операций над читателями.
+/// Использует AutoMapper для преобразования между Domain моделями и DTO.
 /// </summary>
 public class ReaderService : IReaderService
 {
@@ -21,9 +22,10 @@ public class ReaderService : IReaderService
     }
 
     /// <summary>
-    /// Получить читателя по идентификатору.
-    /// 🔧 Include загружает Issues!
+    /// Получает читателя по уникальному идентификатору.
     /// </summary>
+    /// <param name="id">Идентификатор читателя для поиска.</param>
+    /// <returns>DTO читателя, если найден; null если читатель не существует.</returns>
     public async Task<ReaderDto?> GetAsync(int id)
     {
         var reader = await _readerRepository.ReadAsync(id);
@@ -31,9 +33,9 @@ public class ReaderService : IReaderService
     }
 
     /// <summary>
-    /// Получить список всех читателей.
-    /// 🔧 Include загружает Issues!
+    /// Получает список всех читателей.
     /// </summary>
+    /// <returns>Коллекция DTO всех читателей. Если читателей нет, возвращает пустой список.</returns>
     public async Task<IReadOnlyList<ReaderDto>> GetListAsync()
     {
         var readers = await _readerRepository.ReadAllAsync();
@@ -41,8 +43,10 @@ public class ReaderService : IReaderService
     }
 
     /// <summary>
-    /// Создать нового читателя.
+    /// Создаёт нового читателя в базе данных.
     /// </summary>
+    /// <param name="input">DTO с данными нового читателя (FullName, Address, Phone, RegistrationDate обязательны).</param>
+    /// <returns>DTO созданного читателя с назначенным идентификатором.</returns>
     public async Task<ReaderDto> CreateAsync(ReaderCreateUpdateDto input)
     {
         var reader = _mapper.Map<Reader>(input);
@@ -51,8 +55,11 @@ public class ReaderService : IReaderService
     }
 
     /// <summary>
-    /// Обновить существующего читателя.
+    /// Обновляет информацию об существующем читателе.
     /// </summary>
+    /// <param name="id">Идентификатор читателя для обновления.</param>
+    /// <param name="input">DTO с новыми данными читателя.</param>
+    /// <returns>Обновленный DTO читателя, если успешно; null если читатель не найден.</returns>
     public async Task<ReaderDto?> UpdateAsync(int id, ReaderCreateUpdateDto input)
     {
         var existing = await _readerRepository.ReadAsync(id);
@@ -65,8 +72,9 @@ public class ReaderService : IReaderService
     }
 
     /// <summary>
-    /// Удалить читателя по идентификатору.
+    /// Удаляет читателя из базы данных по идентификатору.
     /// </summary>
+    /// <param name="id">Идентификатор читателя для удаления.</param>
     public async Task DeleteAsync(int id)
     {
         await _readerRepository.DeleteAsync(id);

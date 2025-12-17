@@ -1,39 +1,39 @@
 namespace Library.Domain.Models;
 
 /// <summary>
-/// Represents a library reader with personal details and registration information.
+/// Представляет читателя библиотеки с личными данными и информацией о регистрации.
 /// </summary>
 public class Reader
 {
     /// <summary>
-    /// Gets or sets the unique identifier of the reader.
+    /// Получает или задает уникальный идентификатор читателя.
     /// </summary>
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the full name of the reader.
+    /// Получает или задает полное имя читателя.
     /// </summary>
     public required string FullName { get; set; }
 
     /// <summary>
-    /// Gets or sets the address of the reader.
-    /// Optional.
+    /// Получает или задает адрес читателя.
+    /// Необязательно.
     /// </summary>
     public string? Address { get; set; }
 
     /// <summary>
-    /// Gets or sets the phone number of the reader.
-    /// Optional.
+    /// Получает или задает номер телефона читателя.
+    /// Необязательно.
     /// </summary>
     public string? Phone { get; set; }
 
     /// <summary>
-    /// Gets or sets the date when the reader was registered in the library system.
+    /// Получает или задает дату регистрации читателя в системе библиотеки.
     /// </summary>
     public DateTime RegistrationDate { get; set; }
 
     /// <summary>
-    /// Navigation property for issues related to this reader.
+    /// Навигационное свойство для проблем, связанных с этим читателем.
     /// </summary>
     public List<Issue> Issues { get; set; } = [];
 }
