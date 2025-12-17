@@ -12,6 +12,7 @@ namespace Library.Api.Host;
 /// <summary>
 /// AutoMapper профиль для конфигурации всех маппингов между DTO и Domain моделями.
 /// Определяет двусторонние маппинги для всех сущностей системы.
+/// Поддерживает как DTO (для API-ответов) так и CreateUpdateDto (для создания/обновления).
 /// </summary>
 public class MappingProfile : Profile
 {

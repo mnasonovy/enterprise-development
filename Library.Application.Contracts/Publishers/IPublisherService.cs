@@ -21,8 +21,9 @@ public interface IPublisherService : IApplicationService
 
     /// <summary>
     /// Создать нового издателя в системе.
+    /// ID должен быть установлен вручную и быть больше 0.
     /// </summary>
-    /// <param name="input">DTO с данными нового издателя (Name)</param>
+    /// <param name="input">DTO с данными нового издателя (Name и Id обязательны)</param>
     /// <returns>DTO созданного издателя с заполненными данными</returns>
     public Task<PublisherDto> CreateAsync(PublisherCreateUpdateDto input);
 
@@ -38,6 +39,5 @@ public interface IPublisherService : IApplicationService
     /// Удалить издателя из системы.
     /// </summary>
     /// <param name="id">Уникальный идентификатор издателя для удаления</param>
-    /// <returns>Задача удаления</returns>
     public Task DeleteAsync(int id);
 }

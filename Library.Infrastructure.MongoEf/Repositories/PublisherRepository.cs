@@ -9,7 +9,7 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 /// <summary>
 /// Репозиторий для работы с издателями через MongoDB EF Core.
 /// Заменяет старый MongoDBDriver подход на современный EF Core.
-/// Включает автоматическую загрузку связанных Book через Include.
+/// НЕ использует Include() для совместимости с MongoDB (нет foreign keys).
 /// </summary>
 public class PublisherRepository
 {
@@ -23,31 +23,31 @@ public class PublisherRepository
     }
 
     /// <summary>
-    /// Получить издателя по идентификатору с включением связанных книг.
+    /// Получить издателя по идентификатору.
     /// Использует AsNoTracking для оптимизации при только чтении данных.
-    /// Include загружает коллекцию Books для полноты данных издателя.
+    /// БЕЗ Include() - MongoDB не поддерживает foreign keys и eager loading.
     /// </summary>
+    /// <param name="id">Идентификатор издателя</param>
+    /// <returns>Publisher если найден, иначе null</returns>
     public async Task<Publisher?> ReadAsync(int id)
     {
         return await _publishers
             .AsNoTracking()
-            .Include(p => p.Books)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     /// <summary>
-    /// Получить список всех издателей из базы данных с их книгами.
+    /// Получить список всех издателей из базы данных.
     /// AsNoTracking улучшает производительность при чтении большого списка.
-    /// Include для Books загружает все связанные книги каждого издателя.
+    /// БЕЗ Include() - MongoDB не поддерживает foreign keys и eager loading.
     /// Возвращает читаемый (доступный только для чтения) список.
     /// </summary>
+    /// <returns>Неизменяемый список всех издателей</returns>
     public async Task<IReadOnlyList<Publisher>> ReadAllAsync()
     {
         var result = await _publishers
             .AsNoTracking()
-            .Include(p => p.Books)
             .ToListAsync();
-
         return result.AsReadOnly();
     }
 
@@ -56,6 +56,8 @@ public class PublisherRepository
     /// Добавляет издателя в DbSet, затем сохраняет изменения в MongoDB.
     /// Возвращает созданного издателя с установленным Id.
     /// </summary>
+    /// <param name="entity">Сущность издателя для создания</param>
+    /// <returns>Созданная сущность Publisher</returns>
     public async Task<Publisher> CreateAsync(Publisher entity)
     {
         await _publishers.AddAsync(entity);
@@ -68,6 +70,8 @@ public class PublisherRepository
     /// Проверяет существование издателя перед удалением.
     /// Возвращает true если удаление успешно, false если издатель не найден.
     /// </summary>
+    /// <param name="id">Идентификатор издателя для удаления</param>
+    /// <returns>True если удалено, false если не найдено</returns>
     public async Task<bool> DeleteAsync(int id)
     {
         var entity = await _publishers.FirstOrDefaultAsync(p => p.Id == id);
@@ -84,6 +88,8 @@ public class PublisherRepository
     /// Проверяет наличие издателя перед обновлением.
     /// Возвращает обновленного издателя если успешно, null если издатель не найден.
     /// </summary>
+    /// <param name="entity">Сущность с обновленными данными</param>
+    /// <returns>Обновленный Publisher или null если издатель не найден</returns>
     public async Task<Publisher?> UpdateAsync(Publisher entity)
     {
         var exists = await _publishers.AnyAsync(p => p.Id == entity.Id);
