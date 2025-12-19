@@ -1,10 +1,12 @@
-﻿namespace Library.Application.Contracts.Analytics;
+﻿using Library.Application.Contracts.Analytics;
+
+namespace Library.Infrastructure.MongoEf.Contracts;
 
 /// <summary>
-/// Интерфейс для аналитического сервиса библиотеки.
-/// Определяет методы для получения различных аналитических отчетов.
+/// Репозиторий для аналитических запросов.
+/// Работает напрямую с DbSet без загрузки в память всех данных.
 /// </summary>
-public interface IAnalyticsService
+public interface IAnalyticsRepository
 {
     /// <summary>
     /// Получить все выданные книги в алфавитном порядке (уникальные названия).
@@ -17,7 +19,7 @@ public interface IAnalyticsService
     public Task<IReadOnlyList<TopReaderDto>> GetTopReadersAsync();
 
     /// <summary>
-    /// Получить всех читателей с общим количеством дней выданных книг, отсортированных по имени.
+    /// Получить всех читателей со статистикой по дням выданных книг.
     /// </summary>
     public Task<IReadOnlyList<ReaderDaysCountDto>> GetReadersByDaysCountAsync();
 
@@ -27,7 +29,7 @@ public interface IAnalyticsService
     public Task<IReadOnlyList<TopPublisherDto>> GetTopPublishersLastYearAsync();
 
     /// <summary>
-    /// Получить топ 5 популярных книг за последний год.
+    /// Получить топ 5 наименее популярных книг за последний год.
     /// </summary>
     public Task<IReadOnlyList<TopBookDto>> GetTopPopularBooksLastYearAsync();
 }

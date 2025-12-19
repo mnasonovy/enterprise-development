@@ -18,18 +18,25 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // AUTHOR Mappings - Маппинги для авторов
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+        MapAuthors();
+        MapBooks();
+        MapBookTypes();
+        MapIssues();
+        MapPublishers();
+        MapReaders();
+        MapAnalytics();
+    }
 
+    /// <summary>Маппинги для авторов</summary>
+    private void MapAuthors()
+    {
         CreateMap<Author, AuthorDto>().ReverseMap();
         CreateMap<Author, AuthorCreateUpdateDto>().ReverseMap();
+    }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // BOOK Mappings - Маппинги для книг
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-        // Book -> BookDto: берём имена из навигаций, которые грузит репозиторий
+    /// <summary>Маппинги для книг</summary>
+    private void MapBooks()
+    {
         CreateMap<Book, BookDto>()
             .ForMember(d => d.BookTypeName,
                 opt => opt.MapFrom(s => s.BookType.Name))
@@ -38,20 +45,19 @@ public class MappingProfile : Profile
             .ForMember(d => d.AuthorNames,
                 opt => opt.MapFrom(s => s.Authors.Select(a => a.LastName)));
 
-        // Book <-> BookCreateUpdateDto: двусторонний маппинг для создания/обновления
         CreateMap<Book, BookCreateUpdateDto>().ReverseMap();
+    }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // BOOKTYPE Mappings - Маппинги для типов книг
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+    /// <summary>Маппинги для типов книг</summary>
+    private void MapBookTypes()
+    {
         CreateMap<BookType, BookTypeDto>().ReverseMap();
         CreateMap<BookType, BookTypeCreateUpdateDto>().ReverseMap();
+    }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // ISSUE Mappings - Маппинги для выданных книг
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+    /// <summary>Маппинги для выданных книг</summary>
+    private void MapIssues()
+    {
         CreateMap<Issue, IssueDto>()
             .ForMember(dest => dest.BookTitle,
                 opt => opt.MapFrom(src => src.Book.Title))
@@ -59,25 +65,25 @@ public class MappingProfile : Profile
                 opt => opt.MapFrom(src => src.Reader.FullName));
 
         CreateMap<Issue, IssueCreateUpdateDto>().ReverseMap();
+    }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // PUBLISHER Mappings - Маппинги для издателей
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+    /// <summary>Маппинги для издателей</summary>
+    private void MapPublishers()
+    {
         CreateMap<Publisher, PublisherDto>().ReverseMap();
         CreateMap<Publisher, PublisherCreateUpdateDto>().ReverseMap();
+    }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // READER Mappings - Маппинги для читателей
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+    /// <summary>Маппинги для читателей</summary>
+    private void MapReaders()
+    {
         CreateMap<Reader, ReaderDto>().ReverseMap();
         CreateMap<Reader, ReaderCreateUpdateDto>().ReverseMap();
+    }
 
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-        // ANALYTICS DTO Mappings - Маппинги для аналитики
-        // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+    /// <summary>Маппинги для аналитических DTO</summary>
+    private void MapAnalytics()
+    {
         CreateMap<Reader, TopReaderDto>()
             .ForMember(dest => dest.FullName,
                 opt => opt.MapFrom(src => src.FullName));
@@ -94,6 +100,6 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Title,
                 opt => opt.MapFrom(src => src.Title))
             .ForMember(dest => dest.TimesIssued,
-                opt => opt.Ignore()); // вычисляется в сервисе
+                opt => opt.Ignore());
     }
 }

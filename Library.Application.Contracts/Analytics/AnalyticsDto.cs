@@ -1,4 +1,6 @@
-﻿namespace Library.Application.Contracts.Analytics;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Library.Application.Contracts.Analytics;
 
 /// <summary>
 /// Топ читателей за 6 месяцев.
@@ -6,10 +8,12 @@
 /// </summary>
 public class TopReaderDto
 {
-    /// <summary>Полное имя читателя</summary>
+    [Required(ErrorMessage = "Имя читателя обязательно")]
+    [StringLength(200, MinimumLength = 2,
+        ErrorMessage = "Имя должно быть от 2 до 200 символов")]
     public string FullName { get; set; } = string.Empty;
 
-    /// <summary>Количество взятых книг</summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Количество книг должно быть > 0")]
     public int CountBooks { get; set; }
 }
 
@@ -19,10 +23,12 @@ public class TopReaderDto
 /// </summary>
 public class ReaderDaysCountDto
 {
-    /// <summary>Полное имя читателя</summary>
+    [Required(ErrorMessage = "Имя читателя обязательно")]
+    [StringLength(200, MinimumLength = 2,
+        ErrorMessage = "Имя должно быть от 2 до 200 символов")]
     public string FullName { get; set; } = string.Empty;
 
-    /// <summary>Общее количество дней всех выданных книг</summary>
+    [Range(0, int.MaxValue, ErrorMessage = "Количество дней не может быть отрицательным")]
     public int CountDays { get; set; }
 }
 
@@ -32,22 +38,26 @@ public class ReaderDaysCountDto
 /// </summary>
 public class TopPublisherDto
 {
-    /// <summary>Название издательства</summary>
+    [Required(ErrorMessage = "Название издательства обязательно")]
+    [StringLength(300, MinimumLength = 2,
+        ErrorMessage = "Название должно быть от 2 до 300 символов")]
     public string PublisherName { get; set; } = string.Empty;
 
-    /// <summary>Количество выданных книг от этого издательства</summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Количество книг должно быть > 0")]
     public int CountBooks { get; set; }
 }
 
 /// <summary>
-/// Топ 5 наименее популярных книг за год.
+/// Топ 5 популярных книг за год.
 /// DTO для GET /api/analytics/top-popular-books
 /// </summary>
 public class TopBookDto
 {
-    /// <summary>Название книги</summary>
+    [Required(ErrorMessage = "Название книги обязательно")]
+    [StringLength(500, MinimumLength = 1,
+        ErrorMessage = "Название должно быть от 1 до 500 символов")]
     public string Title { get; set; } = string.Empty;
 
-    /// <summary>Количество раз, которое книга была выдана</summary>
+    [Range(1, int.MaxValue, ErrorMessage = "Количество выданных копий должно быть > 0")]
     public int TimesIssued { get; set; }
 }

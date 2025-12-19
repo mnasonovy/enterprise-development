@@ -11,14 +11,9 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 /// </summary>
 public class BookRepository(MongoDbContext context) : IBookRepository
 {
-    private readonly DbSet<Book> _books = context.Books;
-    private readonly DbSet<Author> _authors = context.Authors;
-    private readonly DbSet<BookType> _bookTypes = context.BookTypes;
-    private readonly DbSet<Publisher> _publishers = context.Publishers;
-
     public async Task<Book?> ReadAsync(int id)
     {
-        var book = await _books
+        var book = await context.Books
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id);
 
@@ -30,7 +25,7 @@ public class BookRepository(MongoDbContext context) : IBookRepository
 
     public async Task<IReadOnlyList<Book>> ReadAllAsync()
     {
-        var books = await _books
+        var books = await context.Books
             .AsNoTracking()
             .ToListAsync();
 
@@ -42,7 +37,7 @@ public class BookRepository(MongoDbContext context) : IBookRepository
 
     public async Task<Book> CreateAsync(Book entity)
     {
-        await _books.AddAsync(entity);
+        await context.Books.AddAsync(entity);
         await context.SaveChangesAsync();
 
         await LoadReferencesAsync(entity);
@@ -52,11 +47,11 @@ public class BookRepository(MongoDbContext context) : IBookRepository
 
     public async Task<Book?> UpdateAsync(Book entity)
     {
-        var exists = await _books.AnyAsync(b => b.Id == entity.Id);
+        var exists = await context.Books.AnyAsync(b => b.Id == entity.Id);
         if (!exists)
             return null;
 
-        _books.Update(entity);
+        context.Books.Update(entity);
         await context.SaveChangesAsync();
 
         await LoadReferencesAsync(entity);
@@ -66,11 +61,11 @@ public class BookRepository(MongoDbContext context) : IBookRepository
 
     public async Task DeleteAsync(int id)
     {
-        var entity = await _books.FirstOrDefaultAsync(b => b.Id == id);
+        var entity = await context.Books.FirstOrDefaultAsync(b => b.Id == id);
         if (entity == null)
             return;
 
-        _books.Remove(entity);
+        context.Books.Remove(entity);
         await context.SaveChangesAsync();
     }
 
@@ -86,7 +81,7 @@ public class BookRepository(MongoDbContext context) : IBookRepository
         }
         else
         {
-            var authors = await _authors
+            var authors = await context.Authors
                 .AsNoTracking()
                 .Where(a => book.AuthorIds.Contains(a.Id))
                 .ToListAsync();
@@ -95,13 +90,13 @@ public class BookRepository(MongoDbContext context) : IBookRepository
         }
 
         // Тип книги
-        book.BookType = await _bookTypes
+        book.BookType = await context.BookTypes
             .AsNoTracking()
             .FirstOrDefaultAsync(t => t.Id == book.BookTypeId)
             ?? throw new KeyNotFoundException($"Тип книги с ID {book.BookTypeId} не найден");
 
         // Издатель
-        book.Publisher = await _publishers
+        book.Publisher = await context.Publishers
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == book.PublisherId)
             ?? throw new KeyNotFoundException($"Издатель с ID {book.PublisherId} не найден");

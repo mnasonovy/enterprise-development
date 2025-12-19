@@ -42,40 +42,20 @@ public static class ApplicationServiceCollectionExtensions
     /// <example>
     /// <code>
     /// builder.Services
-    ///     .AddApplicationServices()    // Регистрирует все 7 сервисов
+    ///     .AddApplicationServices()
     ///     .AddAutoMapperConfiguration();
     /// </code>
     /// </example>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // ========================================
-        // РЕГИСТРАЦИЯ APPLICATION СЕРВИСОВ
-        // ========================================
-        // Каждый сервис регистрируется как Scoped:
-        // - Зависит от соответствующего репозитория (внедряется через конструктор)
-        // - Содержит бизнес-логику и валидацию
-        // - Преобразует Domain Models в DTOs для API ответов
-
-        /// <summary>Book Service - управление книгами (создание, редактирование, удаление, поиск)</summary>
-        services.AddScoped<IBookService, BookService>();
-
-        /// <summary>Author Service - управление авторами</summary>
-        services.AddScoped<IAuthorService, AuthorService>();
-
-        /// <summary>Reader Service - управление читателями</summary>
-        services.AddScoped<IReaderService, ReaderService>();
-
-        /// <summary>Issue Service - управление выданными книгами (учёт выдачи/возврата)</summary>
-        services.AddScoped<IIssueService, IssueService>();
-
-        /// <summary>Publisher Service - управление издателями</summary>
-        services.AddScoped<IPublisherService, PublisherService>();
-
-        /// <summary>BookType Service - управление типами/категориями книг</summary>
-        services.AddScoped<IBookTypeService, BookTypeService>();
-
-        /// <summary>Analytics Service - статистика и аналитика библиотеки</summary>
-        services.AddScoped<IAnalyticsService, AnalyticsService>();
+        services
+            .AddScoped<IBookService, BookService>()
+            .AddScoped<IAuthorService, AuthorService>()
+            .AddScoped<IReaderService, ReaderService>()
+            .AddScoped<IIssueService, IssueService>()
+            .AddScoped<IPublisherService, PublisherService>()
+            .AddScoped<IBookTypeService, BookTypeService>()
+            .AddScoped<IAnalyticsService, AnalyticsService>();
 
         return services;
     }
@@ -98,16 +78,11 @@ public static class ApplicationServiceCollectionExtensions
     /// <code>
     /// builder.Services
     ///     .AddApplicationServices()
-    ///     .AddAutoMapperConfiguration();  // Инициализирует AutoMapper
+    ///     .AddAutoMapperConfiguration();
     /// </code>
     /// </example>
     public static IServiceCollection AddAutoMapperConfiguration(this IServiceCollection services)
     {
-        // ========================================
-        // КОНФИГУРАЦИЯ AUTOMAPPER
-        // ========================================
-        // Сканирует сборку Library.Application на наличие классов, наследующих Profile
-        // и автоматически регистрирует все маппинги из текущей сборки
         services.AddAutoMapper(config =>
         {
             config.AddMaps(typeof(ApplicationServiceCollectionExtensions).Assembly);

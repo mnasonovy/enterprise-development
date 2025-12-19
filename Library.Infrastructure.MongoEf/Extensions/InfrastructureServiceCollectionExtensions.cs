@@ -44,7 +44,7 @@ public static class InfrastructureServiceCollectionExtensions
                 "MongoDB database name cannot be null or empty");
 
         services.AddDbContext<MongoDbContext>(options =>
-            options.UseMongoDB(connectionString, databaseName)  // ← С именем БД!
+            options.UseMongoDB(connectionString, databaseName)
         );
 
         return services;
@@ -61,6 +61,7 @@ public static class InfrastructureServiceCollectionExtensions
     /// - IIssueRepository → IssueRepository (управление выданными книгами)
     /// - IPublisherRepository → PublisherRepository (управление издателями)
     /// - IBookTypeRepository → BookTypeRepository (управление типами книг)
+    /// - IAnalyticsRepository → AnalyticsRepository (аналитические запросы)
     /// </summary>
     /// <param name="services">IServiceCollection для регистрации сервисов</param>
     /// <returns>IServiceCollection для цепочки вызовов (Method Chaining)</returns>
@@ -72,25 +73,19 @@ public static class InfrastructureServiceCollectionExtensions
     /// <code>
     /// builder.Services
     ///     .AddMongoDbContext(connectionString, databaseName)
-    ///     .AddRepositories();  // Регистрирует все 6 репозиториев
+    ///     .AddRepositories();  // Регистрирует все репозитории
     /// </code>
     /// </example>
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        // ========================================
-        // РЕГИСТРАЦИЯ РЕПОЗИТОРИЕВ
-        // ========================================
-        // Каждый репозиторий регистрируется как Scoped:
-        // - Создаётся новый экземпляр на каждый HTTP запрос
-        // - Гарантирует изоляцию данных между запросами
-        // - Правильно работает с DbContext lifetime'ом
-
-        services.AddScoped<IBookRepository, BookRepository>();
-        services.AddScoped<IAuthorRepository, AuthorRepository>();
-        services.AddScoped<IReaderRepository, ReaderRepository>();
-        services.AddScoped<IIssueRepository, IssueRepository>();
-        services.AddScoped<IPublisherRepository, PublisherRepository>();
-        services.AddScoped<IBookTypeRepository, BookTypeRepository>();
+        services
+            .AddScoped<IBookRepository, BookRepository>()
+            .AddScoped<IAuthorRepository, AuthorRepository>()
+            .AddScoped<IReaderRepository, ReaderRepository>()
+            .AddScoped<IIssueRepository, IssueRepository>()
+            .AddScoped<IPublisherRepository, PublisherRepository>()
+            .AddScoped<IBookTypeRepository, BookTypeRepository>()
+            .AddScoped<IAnalyticsRepository, AnalyticsRepository>();
 
         return services;
     }
