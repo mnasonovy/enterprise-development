@@ -6,19 +6,12 @@ namespace Library.Infrastructure.MongoEf.Database;
 
 /// <summary>
 /// Контекст базы данных MongoDB для приложения библиотеки.
-/// Управляет всеми сущностями (книги, авторы, читатели, выпуски, издатели, типы книг)
+/// Управляет всеми сущностями (книги, авторы, читатели, выданные книги, издатели, типы книг)
 /// и определяет их отношения в MongoDB.
+/// Поддерживает работу с Primary Constructor для инъекции зависимостей.
 /// </summary>
-public class MongoDbContext : DbContext
+public class MongoDbContext(DbContextOptions<MongoDbContext> options) : DbContext(options)
 {
-    /// <summary>
-    /// Инициализирует новый экземпляр <see cref="MongoDbContext"/>.
-    /// </summary>
-    /// <param name="options">Опции конфигурации контекста</param>
-    public MongoDbContext(DbContextOptions<MongoDbContext> options) : base(options)
-    {
-    }
-
     /// <summary>
     /// Набор данных для коллекции книг.
     /// Содержит все книги в каталоге библиотеки.
@@ -38,8 +31,8 @@ public class MongoDbContext : DbContext
     public DbSet<Reader> Readers { get; set; } = null!;
 
     /// <summary>
-    /// Набор данных для коллекции выпусков.
-    /// Содержит информацию о всех выпусках (экземплярах) книг в библиотеке.
+    /// Набор данных для коллекции выданных книг (Issue).
+    /// Содержит информацию о всех выданных экземплярах книг читателям.
     /// </summary>
     public DbSet<Issue> Issues { get; set; } = null!;
 
@@ -57,13 +50,16 @@ public class MongoDbContext : DbContext
 
     /// <summary>
     /// Конфигурирует модель данных и отношения между сущностями в MongoDB.
+    /// Определяет имена коллекций и правила удаления (cascade behavior).
     /// </summary>
     /// <param name="modelBuilder">Построитель модели для конфигурации сущностей</param>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        // Определяет имена коллекций MongoDB для каждой сущности
+        // ========================================
+        // ОПРЕДЕЛЕНИЕ КОЛЛЕКЦИЙ MONGODB
+        // ========================================
         modelBuilder.Entity<Book>().ToCollection("books");
         modelBuilder.Entity<Author>().ToCollection("authors");
         modelBuilder.Entity<Reader>().ToCollection("readers");

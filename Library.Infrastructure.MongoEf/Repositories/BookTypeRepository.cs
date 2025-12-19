@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Library.Domain.Models;
+﻿using Library.Domain.Models;
+using Library.Infrastructure.MongoEf.Contracts;
 using Library.Infrastructure.MongoEf.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,27 +7,15 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
 /// Репозиторий для работы с типами книг через MongoDB EF Core.
-/// Реализует паттерн Repository для инкапсуляции логики доступа к данным.
+/// Реализует интерфейс IBookTypeRepository для инкапсуляции логики доступа к данным.
 /// Поддерживает асинхронные операции CRUD через Entity Framework Core.
 /// </summary>
-public class BookTypeRepository
+public class BookTypeRepository(MongoDbContext context) : IBookTypeRepository
 {
-    private readonly MongoDbContext _context;
-    private readonly DbSet<BookType> _bookTypes;
-
-    /// <summary>
-    /// Инициализирует репозиторий с контекстом MongoDB EF Core.
-    /// </summary>
-    /// <param name="context">Контекст базы данных MongoDB</param>
-    public BookTypeRepository(MongoDbContext context)
-    {
-        _context = context;
-        _bookTypes = context.BookTypes;
-    }
+    private readonly DbSet<BookType> _bookTypes = context.BookTypes;
 
     /// <summary>
     /// Получить тип книги по идентификатору.
-    /// MongoDB EF Core не поддерживает Include, поэтому загружаем только сам тип.
     /// </summary>
     /// <param name="id">Уникальный идентификатор типа книги</param>
     /// <returns>Объект BookType или null если тип не найден</returns>
@@ -41,7 +28,6 @@ public class BookTypeRepository
 
     /// <summary>
     /// Получить список всех типов книг из базы данных.
-    /// MongoDB EF Core не поддерживает Include, поэтому загружаем только типы без навигаций.
     /// </summary>
     /// <returns>Неизменяемый список всех типов книг</returns>
     public async Task<IReadOnlyList<BookType>> ReadAllAsync()
@@ -60,7 +46,23 @@ public class BookTypeRepository
     public async Task<BookType> CreateAsync(BookType entity)
     {
         await _bookTypes.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
+        return entity;
+    }
+
+    /// <summary>
+    /// Обновить данные существующего типа книги.
+    /// </summary>
+    /// <param name="entity">Объект BookType с обновленными данными</param>
+    /// <returns>Обновленный объект BookType или null если тип не найден</returns>
+    public async Task<BookType?> UpdateAsync(BookType entity)
+    {
+        var exists = await _bookTypes.AnyAsync(bt => bt.Id == entity.Id);
+        if (!exists)
+            return null;
+
+        _bookTypes.Update(entity);
+        await context.SaveChangesAsync();
         return entity;
     }
 
@@ -76,23 +78,7 @@ public class BookTypeRepository
             return false;
 
         _bookTypes.Remove(entity);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return true;
-    }
-
-    /// <summary>
-    /// Обновить данные существующего типа книги.
-    /// </summary>
-    /// <param name="entity">Объект BookType с обновленными данными</param>
-    /// <returns>Обновленный объект BookType или null если тип не найден</returns>
-    public async Task<BookType?> UpdateAsync(BookType entity)
-    {
-        var exists = await _bookTypes.AnyAsync(bt => bt.Id == entity.Id);
-        if (!exists)
-            return null;
-
-        _bookTypes.Update(entity);
-        await _context.SaveChangesAsync();
-        return entity;
     }
 }

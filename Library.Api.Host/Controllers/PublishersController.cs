@@ -5,8 +5,11 @@ namespace Library.Api.Host.Controllers;
 
 /// <summary>
 /// REST API контроллер для управления издателями.
-/// Реализует все CRUD-операции: получение списка, получение по ID, создание, обновление и удаление.
-/// Все методы асинхронные с полной валидацией входных данных и логированием.
+/// Все ошибки отдаются через глобальный ExceptionHandlingMiddleware:
+/// - ArgumentException / ArgumentNullException → 400
+/// - KeyNotFoundException → 404
+/// - InvalidOperationException → 409
+/// - остальные исключения → 500
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -17,159 +20,146 @@ public class PublishersController(
     /// <summary>
     /// Получить список всех издателей.
     /// HTTP GET: /api/publishers
-    /// Возвращает 200 OK с полным списком или 204 No Content если список пуст.
     /// </summary>
-    /// <returns>IReadOnlyList&lt;PublisherDto&gt; - список всех издателей</returns>
     [HttpGet]
     [ProducesResponseType(200, Type = typeof(IReadOnlyList<PublisherDto>))]
     [ProducesResponseType(204)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetListAsync()
     {
-        logger.LogInformation("{Method} method is called", nameof(GetListAsync));
+        logger.LogInformation("{Method} called", nameof(GetListAsync));
+
         var result = await publisherService.GetListAsync();
-        logger.LogInformation("{Method} method executed successfully with {Count} items",
+
+        if (result.Count == 0)
+        {
+            logger.LogInformation("{Method} executed: no publishers found (204)", nameof(GetListAsync));
+            return NoContent(); // 204
+        }
+
+        logger.LogInformation("{Method} executed successfully with {Count} items (200)",
             nameof(GetListAsync), result.Count);
-        return result.Count > 0 ? Ok(result) : NoContent();
+
+        return Ok(result); // 200
     }
 
     /// <summary>
     /// Получить издателя по уникальному идентификатору.
     /// HTTP GET: /api/publishers/{id}
-    /// Валидирует ID (должен быть больше 0).
     /// </summary>
-    /// <param name="id">Уникальный идентификатор издателя</param>
-    /// <returns>PublisherDto если найден, иначе NotFound</returns>
     [HttpGet("{id:int}")]
     [ProducesResponseType(200, Type = typeof(PublisherDto))]
-    [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetAsync(int id)
     {
-        logger.LogInformation("{Method} method is called with id = {Id}", nameof(GetAsync), id);
+        logger.LogInformation("{Method} called with id={Id}", nameof(GetAsync), id);
+
         if (id <= 0)
-            return BadRequest("Id must be greater than 0");
+            throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
+
         var result = await publisherService.GetAsync(id);
-        logger.LogInformation("{Method} method executed successfully", nameof(GetAsync));
-        return result != null ? Ok(result) : NotFound();
+
+        if (result == null)
+            throw new KeyNotFoundException($"Издатель с ID {id} не найден");
+
+        logger.LogInformation("{Method} executed successfully with id={Id} (200)",
+            nameof(GetAsync), id);
+
+        return Ok(result); // 200
     }
 
     /// <summary>
-    /// Создать нового издателя в системе.
+    /// Создать нового издателя.
     /// HTTP POST: /api/publishers
-    /// Требует валидное имя издателя (не пусто и не только пробелы).
-    /// ID должен быть установлен вручную и быть больше 0.
-    /// Возвращает 201 Created с заполненными данными и ID.
     /// </summary>
-    /// <param name="input">DTO с данными нового издателя (Name и Id обязательны)</param>
-    /// <returns>Created с PublisherDto и его ID</returns>
     [HttpPost]
     [ProducesResponseType(201, Type = typeof(PublisherDto))]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> CreateAsync([FromBody] PublisherCreateUpdateDto input)
     {
-        logger.LogInformation("{Method} method is called", nameof(CreateAsync));
+        logger.LogInformation("{Method} called", nameof(CreateAsync));
 
         if (input == null)
-            return BadRequest("Publisher data is required");
+            throw new ArgumentNullException(nameof(input), "Publisher data is required");
 
         if (input.Id <= 0)
-            return BadRequest("Publisher ID must be set manually and be greater than 0");
+            throw new ArgumentException($"Publisher ID must be greater than 0, получено: {input.Id}");
 
         if (string.IsNullOrWhiteSpace(input.Name))
-            return BadRequest("Publisher name is required");
+            throw new ArgumentException("Publisher name is required");
 
-        try
-        {
-            var result = await publisherService.CreateAsync(input);
+        var result = await publisherService.CreateAsync(input);
 
-            logger.LogInformation("{Method} method executed successfully with id = {Id}",
-                nameof(CreateAsync), result.Id);
+        logger.LogInformation("{Method} executed successfully with id={Id} (201)",
+            nameof(CreateAsync), result.Id);
 
-            return Created($"/api/publishers/{result.Id}", result);
-        }
-        catch (ArgumentException ex)
-        {
-            logger.LogError("Error creating Publisher: {Message}", ex.Message);
-            return BadRequest(ex.Message);
-        }
+        return Created($"/api/publishers/{result.Id}", result); // 201
     }
 
     /// <summary>
     /// Обновить данные существующего издателя.
     /// HTTP PUT: /api/publishers/{id}
-    /// Валидирует ID и входные данные перед обновлением.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор издателя для обновления</param>
-    /// <param name="input">DTO с новыми данными издателя (Name обязателен)</param>
-    /// <returns>Ok с обновленными данными или NotFound если издатель не существует</returns>
     [HttpPut("{id:int}")]
     [ProducesResponseType(200, Type = typeof(PublisherDto))]
-    [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> UpdateAsync(int id, [FromBody] PublisherCreateUpdateDto input)
     {
-        logger.LogInformation("{Method} method is called with id = {Id}", nameof(UpdateAsync), id);
+        logger.LogInformation("{Method} called with id={Id}", nameof(UpdateAsync), id);
 
         if (id <= 0)
-            return BadRequest("Id must be greater than 0");
+            throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
         if (input == null)
-            return BadRequest("Publisher data is required");
+            throw new ArgumentNullException(nameof(input), "Publisher data is required");
 
         if (string.IsNullOrWhiteSpace(input.Name))
-            return BadRequest("Publisher name is required");
+            throw new ArgumentException("Publisher name is required");
 
-        try
-        {
-            var result = await publisherService.UpdateAsync(id, input);
+        var result = await publisherService.UpdateAsync(id, input);
 
-            logger.LogInformation("{Method} method executed successfully", nameof(UpdateAsync));
+        if (result == null)
+            throw new KeyNotFoundException($"Издатель с ID {id} не найден для обновления");
 
-            return result != null ? Ok(result) : NotFound();
-        }
-        catch (ArgumentException ex)
-        {
-            logger.LogError("Error updating Publisher: {Message}", ex.Message);
-            return BadRequest(ex.Message);
-        }
+        logger.LogInformation("{Method} executed successfully with id={Id} (200)",
+            nameof(UpdateAsync), id);
+
+        return Ok(result); // 200
     }
 
     /// <summary>
-    /// Удалить издателя из системы по идентификатору.
+    /// Удалить издателя по идентификатору.
     /// HTTP DELETE: /api/publishers/{id}
-    /// Валидирует ID перед удалением. Возвращает 204 No Content при успехе.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор издателя для удаления</param>
-    /// <returns>NoContent (204) при успешном удалении</returns>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> DeleteAsync(int id)
     {
-        logger.LogInformation("{Method} method is called with id = {Id}", nameof(DeleteAsync), id);
+        logger.LogInformation("{Method} called with id={Id}", nameof(DeleteAsync), id);
 
         if (id <= 0)
-            return BadRequest("Id must be greater than 0");
+            throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
         try
         {
             await publisherService.DeleteAsync(id);
-
-            logger.LogInformation("{Method} method executed successfully", nameof(DeleteAsync));
-
-            return NoContent();
         }
-        catch (ArgumentException ex)
+        catch (KeyNotFoundException)
         {
-            logger.LogError("Error deleting Publisher: {Message}", ex.Message);
-            return BadRequest(ex.Message);
+            throw new KeyNotFoundException($"Издатель с ID {id} не найден для удаления");
         }
+
+        logger.LogInformation("{Method} executed successfully with id={Id} (204)",
+            nameof(DeleteAsync), id);
+
+        return NoContent(); // 204
     }
 }

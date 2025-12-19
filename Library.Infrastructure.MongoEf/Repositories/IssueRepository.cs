@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Library.Domain.Models;
+﻿using Library.Domain.Models;
+using Library.Infrastructure.MongoEf.Contracts;
 using Library.Infrastructure.MongoEf.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,19 +7,12 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
 /// Репозиторий для работы с выданными книгами (Issue) через MongoDB EF Core.
-/// Предоставляет методы для выполнения CRUD операций над сущностью Issue.
+/// Реализует интерфейс IIssueRepository и предоставляет методы для выполнения CRUD операций.
 /// ВАЖНО: MongoDB EF Core НЕ поддерживает Include(), используем Entry().LoadAsync() вместо этого.
 /// </summary>
-public class IssueRepository
+public class IssueRepository(MongoDbContext context) : IIssueRepository
 {
-    private readonly MongoDbContext _context;
-    private readonly DbSet<Issue> _issues;
-
-    public IssueRepository(MongoDbContext context)
-    {
-        _context = context;
-        _issues = context.Issues;
-    }
+    private readonly DbSet<Issue> _issues = context.Issues;
 
     /// <summary>
     /// Получить выданную книгу по идентификатору.
@@ -36,10 +28,7 @@ public class IssueRepository
         if (issue is null)
             return null;
 
-        // Загружаем связанные сущности
-        await _context.Entry(issue).Reference(i => i.Book).LoadAsync();
-        await _context.Entry(issue).Reference(i => i.Reader).LoadAsync();
-
+        await LoadNavigationPropertiesAsync(issue);
         return issue;
     }
 
@@ -56,8 +45,7 @@ public class IssueRepository
         // Загружаем Book и Reader для каждой Issue
         foreach (var issue in issues)
         {
-            await _context.Entry(issue).Reference(i => i.Book).LoadAsync();
-            await _context.Entry(issue).Reference(i => i.Reader).LoadAsync();
+            await LoadNavigationPropertiesAsync(issue);
         }
 
         return issues.AsReadOnly();
@@ -73,15 +61,14 @@ public class IssueRepository
     public async Task<Issue> CreateAsync(Issue entity)
     {
         await _issues.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         // Перезагружаем созданную Issue с Book и Reader для маппинга
         var createdIssue = await _issues.FirstOrDefaultAsync(i => i.Id == entity.Id);
 
         if (createdIssue is not null)
         {
-            await _context.Entry(createdIssue).Reference(i => i.Book).LoadAsync();
-            await _context.Entry(createdIssue).Reference(i => i.Reader).LoadAsync();
+            await LoadNavigationPropertiesAsync(createdIssue);
         }
 
         return createdIssue!;
@@ -100,7 +87,7 @@ public class IssueRepository
             return false;
 
         _issues.Remove(entity);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         return true;
     }
@@ -129,17 +116,27 @@ public class IssueRepository
         existing.ReaderId = entity.ReaderId;
 
         _issues.Update(existing);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
         // Перезагружаем обновленную Issue для гарантии загрузки Book и Reader
         var updatedIssue = await _issues.FirstOrDefaultAsync(i => i.Id == entity.Id);
-        if (updatedIssue is null)
+
         if (updatedIssue is not null)
         {
-            await _context.Entry(updatedIssue).Reference(i => i.Book).LoadAsync();
-            await _context.Entry(updatedIssue).Reference(i => i.Reader).LoadAsync();
+            await LoadNavigationPropertiesAsync(updatedIssue);
         }
 
         return updatedIssue;
+    }
+
+    /// <summary>
+    /// Загрузить навигационные свойства (Book и Reader) для сущности Issue.
+    /// Вспомогательный приватный метод для избежания дублирования кода.
+    /// </summary>
+    /// <param name="issue">Сущность Issue для загрузки навигаций</param>
+    private async Task LoadNavigationPropertiesAsync(Issue issue)
+    {
+        await context.Entry(issue).Reference(i => i.Book).LoadAsync();
+        await context.Entry(issue).Reference(i => i.Reader).LoadAsync();
     }
 }

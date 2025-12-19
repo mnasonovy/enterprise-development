@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Library.Domain.Models;
+﻿using Library.Domain.Models;
+using Library.Infrastructure.MongoEf.Contracts;
 using Library.Infrastructure.MongoEf.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,20 +10,9 @@ namespace Library.Infrastructure.MongoEf.Repositories;
 /// Предоставляет методы для выполнения CRUD операций над сущностью Author.
 /// MongoDB EF Core не поддерживает Include, поэтому загружаем данные без навигаций.
 /// </summary>
-public class AuthorRepository
+public class AuthorRepository(MongoDbContext context) : IAuthorRepository
 {
-    private readonly MongoDbContext _context;
-    private readonly DbSet<Author> _authors;
-
-    /// <summary>
-    /// Инициализирует репозиторий с контекстом MongoDB EF Core.
-    /// </summary>
-    /// <param name="context">Контекст базы данных MongoDB</param>
-    public AuthorRepository(MongoDbContext context)
-    {
-        _context = context;
-        _authors = context.Authors;
-    }
+    private readonly DbSet<Author> _authors = context.Authors;
 
     /// <summary>
     /// Получает автора по уникальному идентификатору.
@@ -58,7 +46,7 @@ public class AuthorRepository
     public async Task<Author> CreateAsync(Author entity)
     {
         await _authors.AddAsync(entity);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return entity;
     }
 
@@ -74,7 +62,7 @@ public class AuthorRepository
             return null;
 
         _authors.Update(entity);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return entity;
     }
 
@@ -90,7 +78,7 @@ public class AuthorRepository
             return false;
 
         _authors.Remove(entity);
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return true;
     }
 }

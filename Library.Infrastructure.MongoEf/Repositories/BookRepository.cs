@@ -1,132 +1,109 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using Library.Domain.Models;
+﻿using Library.Domain.Models;
+using Library.Infrastructure.MongoEf.Contracts;
 using Library.Infrastructure.MongoEf.Database;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Infrastructure.MongoEf.Repositories;
 
 /// <summary>
-/// Репозиторий для управления книгами в каталоге библиотеки.
-/// Обеспечивает полный набор CRUD операций и управление связями с авторами через коллекцию AuthorIds.
-/// Авторы загружаются динамически при получении книги из БД.
+/// Репозиторий для работы с книгами через MongoDB EF Core.
+/// Загружает тип книги, издателя и авторов по их Id.
 /// </summary>
-public class BookRepository
+public class BookRepository(MongoDbContext context) : IBookRepository
 {
-    private readonly MongoDbContext _context;
-    private readonly DbSet<Book> _books;
-    private readonly DbSet<Author> _authors;
+    private readonly DbSet<Book> _books = context.Books;
+    private readonly DbSet<Author> _authors = context.Authors;
+    private readonly DbSet<BookType> _bookTypes = context.BookTypes;
+    private readonly DbSet<Publisher> _publishers = context.Publishers;
 
-    /// <summary>
-    /// Инициализирует новый экземпляр <see cref="BookRepository"/>.
-    /// </summary>
-    /// <param name="context">Контекст базы данных MongoDB Entity Framework Core</param>
-    public BookRepository(MongoDbContext context)
-    {
-        _context = context;
-        _books = context.Books;
-        _authors = context.Authors;
-    }
-
-    /// <summary>
-    /// Получает книгу по идентификатору с полной информацией об авторах.
-    /// </summary>
-    /// <param name="id">Уникальный идентификатор книги</param>
-    /// <returns>Объект книги с загруженными авторами или <c>null</c> если книга не найдена</returns>
     public async Task<Book?> ReadAsync(int id)
     {
         var book = await _books
             .AsNoTracking()
             .FirstOrDefaultAsync(b => b.Id == id);
 
-        if (book is null) return null;
+        if (book != null)
+            await LoadReferencesAsync(book);
 
-        book.Authors = await LoadAuthorsAsync(book.AuthorIds ?? new List<int>());
         return book;
     }
 
-    /// <summary>
-    /// Получает все книги из каталога с полной информацией об авторах каждой книги.
-    /// </summary>
-    /// <returns>Доступная только для чтения коллекция всех книг с загруженными авторами</returns>
-    public async Task<IReadOnlyCollection<Book>> ReadAllAsync()
+    public async Task<IReadOnlyList<Book>> ReadAllAsync()
     {
         var books = await _books
             .AsNoTracking()
             .ToListAsync();
 
         foreach (var book in books)
-        {
-            book.Authors = await LoadAuthorsAsync(book.AuthorIds ?? new List<int>());
-        }
+            await LoadReferencesAsync(book);
 
         return books.AsReadOnly();
     }
 
-    /// <summary>
-    /// Создает новую книгу в каталоге библиотеки.
-    /// Сохраняет только идентификаторы авторов в поле <see cref="Book.AuthorIds"/>.
-    /// Полные данные авторов загружаются динамически при чтении.
-    /// </summary>
-    /// <param name="entity">Объект книги для создания</param>
-    /// <returns>Созданная книга с загруженными авторами из БД</returns>
     public async Task<Book> CreateAsync(Book entity)
     {
-        _context.Books.Add(entity);
-        await _context.SaveChangesAsync();
+        await _books.AddAsync(entity);
+        await context.SaveChangesAsync();
 
-        entity.Authors = await LoadAuthorsAsync(entity.AuthorIds ?? new List<int>());
+        await LoadReferencesAsync(entity);
+
         return entity;
     }
 
-    /// <summary>
-    /// Обновляет существующую книгу в каталоге.
-    /// Сохраняет только идентификаторы авторов в поле <see cref="Book.AuthorIds"/>.
-    /// Полные данные авторов загружаются динамически при чтении.
-    /// </summary>
-    /// <param name="entity">Объект книги с обновленными данными</param>
-    /// <returns>Обновленная книга с загруженными авторами или <c>null</c> если не удалось обновить</returns>
     public async Task<Book?> UpdateAsync(Book entity)
     {
-        _context.Books.Update(entity);
-        await _context.SaveChangesAsync();
+        var exists = await _books.AnyAsync(b => b.Id == entity.Id);
+        if (!exists)
+            return null;
 
-        entity.Authors = await LoadAuthorsAsync(entity.AuthorIds ?? new List<int>());
+        _books.Update(entity);
+        await context.SaveChangesAsync();
+
+        await LoadReferencesAsync(entity);
+
         return entity;
     }
 
-    /// <summary>
-    /// Удаляет книгу из каталога по идентификатору.
-    /// При удалении также удаляются все связанные выпуски (экземпляры) книги.
-    /// </summary>
-    /// <param name="id">Уникальный идентификатор книги для удаления</param>
     public async Task DeleteAsync(int id)
     {
-        var book = await _books
-            .AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var entity = await _books.FirstOrDefaultAsync(b => b.Id == id);
+        if (entity == null)
+            return;
 
-        if (book is not null)
-        {
-            _context.Books.Remove(book);
-            await _context.SaveChangesAsync();
-        }
+        _books.Remove(entity);
+        await context.SaveChangesAsync();
     }
 
     /// <summary>
-    /// Загружает полную информацию об авторах по их идентификаторам из БД.
-    /// Вспомогательный метод для динамической загрузки данных авторов.
+    /// Подтягивает BookType, Publisher и Authors по их Id (без Include).
     /// </summary>
-    /// <param name="authorIds">Коллекция идентификаторов авторов для загрузки</param>
-    /// <returns>Коллекция авторов с полной информацией (Initials, LastName и т.д.)</returns>
-    private async Task<List<Author>> LoadAuthorsAsync(List<int> authorIds)
+    private async Task LoadReferencesAsync(Book book)
     {
-        if (authorIds is null || authorIds.Count == 0)
-            return new List<Author>();
+        // Авторы
+        if (book.AuthorIds == null || book.AuthorIds.Count == 0)
+        {
+            book.Authors = [];
+        }
+        else
+        {
+            var authors = await _authors
+                .AsNoTracking()
+                .Where(a => book.AuthorIds.Contains(a.Id))
+                .ToListAsync();
 
-        return await _authors
+            book.Authors = authors;
+        }
+
+        // Тип книги
+        book.BookType = await _bookTypes
             .AsNoTracking()
-            .Where(a => authorIds.Contains(a.Id))
-            .ToListAsync();
+            .FirstOrDefaultAsync(t => t.Id == book.BookTypeId)
+            ?? throw new KeyNotFoundException($"Тип книги с ID {book.BookTypeId} не найден");
+
+        // Издатель
+        book.Publisher = await _publishers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == book.PublisherId)
+            ?? throw new KeyNotFoundException($"Издатель с ID {book.PublisherId} не найден");
     }
 }
