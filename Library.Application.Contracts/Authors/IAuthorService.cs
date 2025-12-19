@@ -3,41 +3,15 @@
 /// <summary>
 /// Интерфейс сервиса для управления авторами.
 /// Определяет контракт для выполнения CRUD операций над авторами в системе.
+/// Наследует все методы из базового интерфейса IApplicationService.
 /// </summary>
-public interface IAuthorService : IApplicationService
+public interface IAuthorService
+    : IApplicationService<AuthorDto, AuthorCreateUpdateDto, int>
 {
-    /// <summary>
-    /// Получает автора по уникальному идентификатору.
-    /// </summary>
-    /// <param name="id">Идентификатор автора для поиска.</param>
-    /// <returns>DTO автора, если найден; null если автор не существует.</returns>
-    public Task<AuthorDto?> GetAsync(int id);
-
-    /// <summary>
-    /// Получает список всех авторов из базы данных.
-    /// </summary>
-    /// <returns>Коллекция DTO всех авторов. Если авторов нет, возвращает пустой список.</returns>
-    public Task<IReadOnlyList<AuthorDto>> GetListAsync();
-
-    /// <summary>
-    /// Создаёт нового автора в базе данных.
-    /// ID должен быть установлен вручную и быть больше 0.
-    /// </summary>
-    /// <param name="input">DTO с данными нового автора (LastName и Id обязательны).</param>
-    /// <returns>DTO созданного автора с назначенным идентификатором.</returns>
-    public Task<AuthorDto> CreateAsync(AuthorCreateUpdateDto input);
-
-    /// <summary>
-    /// Обновляет информацию об существующем авторе.
-    /// </summary>
-    /// <param name="id">Идентификатор автора для обновления.</param>
-    /// <param name="input">DTO с новыми данными автора.</param>
-    /// <returns>Обновленный DTO автора, если успешно; null если автор не найден.</returns>
-    public Task<AuthorDto?> UpdateAsync(int id, AuthorCreateUpdateDto input);
-
-    /// <summary>
-    /// Удаляет автора из базы данных по идентификатору.
-    /// </summary>
-    /// <param name="id">Идентификатор автора для удаления.</param>
-    public Task DeleteAsync(int id);
+    // Все CRUD методы наследуются от базового интерфейса:
+    // - GetAsync(int id) → Task<AuthorDto?>
+    // - GetListAsync() → Task<IReadOnlyList<AuthorDto>>
+    // - CreateAsync(AuthorCreateUpdateDto input) → Task<AuthorDto>
+    // - UpdateAsync(int id, AuthorCreateUpdateDto input) → Task<AuthorDto?>
+    // - DeleteAsync(int id) → Task
 }

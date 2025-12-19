@@ -15,7 +15,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Library.Application.Contracts\Library.Application.Contracts.csproj" />
 		<ProjectReference Include="..\Library.Application\Library.Application.csproj" />
 		<ProjectReference Include="..\Library.Infrastructure.MongoEf\Library.Infrastructure.MongoEf.csproj" />
 	</ItemGroup>
