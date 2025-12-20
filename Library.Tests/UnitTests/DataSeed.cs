@@ -32,7 +32,7 @@ public class DataSeed
     public List<Reader> Readers => _readers;
     public List<Issue> Issues => _issues;
 
-    private static List<Author> InitAuthors() =>   
+    private static List<Author> InitAuthors() =>
     [
         new Author { Id = 1,  Initials = "L.N.", LastName = "Tolstoy" },
         new Author { Id = 2,  Initials = "F.M.", LastName = "Dostoevsky" },

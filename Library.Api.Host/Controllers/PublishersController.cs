@@ -59,11 +59,7 @@ public class PublishersController(
         if (id <= 0)
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
-        var result = await publisherService.GetAsync(id);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Издатель с ID {id} не найден");
-
+        var result = await publisherService.GetAsync(id) ?? throw new KeyNotFoundException($"Издатель с ID {id} не найден");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(GetAsync), id);
 
@@ -121,11 +117,7 @@ public class PublishersController(
         if (string.IsNullOrWhiteSpace(input.Name))
             throw new ArgumentException("Publisher name is required");
 
-        var result = await publisherService.UpdateAsync(id, input);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Издатель с ID {id} не найден для обновления");
-
+        var result = await publisherService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Издатель с ID {id} не найден для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(UpdateAsync), id);
 

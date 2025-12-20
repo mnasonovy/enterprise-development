@@ -59,11 +59,7 @@ public class ReadersController(
         if (id <= 0)
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
-        var result = await readerService.GetAsync(id);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Читатель с ID {id} не найден");
-
+        var result = await readerService.GetAsync(id) ?? throw new KeyNotFoundException($"Читатель с ID {id} не найден");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(GetAsync), id);
 
@@ -127,11 +123,7 @@ public class ReadersController(
         if (input.RegistrationDate == default)
             throw new ArgumentException("Registration date is required");
 
-        var result = await readerService.UpdateAsync(id, input);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Читатель с ID {id} не найден для обновления");
-
+        var result = await readerService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Читатель с ID {id} не найден для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(UpdateAsync), id);
 

@@ -57,11 +57,7 @@ public class BookTypesController(IBookTypeService bookTypeService, ILogger<BookT
         if (id <= 0)
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
-        var result = await bookTypeService.GetAsync(id);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Тип книги с ID {id} не найден");
-
+        var result = await bookTypeService.GetAsync(id) ?? throw new KeyNotFoundException($"Тип книги с ID {id} не найден");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(GetAsync), id);
 
@@ -119,11 +115,7 @@ public class BookTypesController(IBookTypeService bookTypeService, ILogger<BookT
         if (string.IsNullOrWhiteSpace(input.Name))
             throw new ArgumentException("Название типа книги (Name) не может быть пустым");
 
-        var result = await bookTypeService.UpdateAsync(id, input);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Тип книги с ID {id} не найден для обновления");
-
+        var result = await bookTypeService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Тип книги с ID {id} не найден для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(UpdateAsync), id);
 

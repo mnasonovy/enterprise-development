@@ -28,7 +28,7 @@ var mongoDb = mongo.AddDatabase("library");
 // REST API сервис с привязкой к MongoDB базе данных
 // WithReference автоматически передаёт connection string в конфигурацию
 // WaitFor гарантирует, что MongoDB полностью инициализирована перед стартом API
-var api = builder.AddProject<Library_Api_Host>("api")
+_ = builder.AddProject<Library_Api_Host>("api")
     .WithReference(mongoDb)
     .WaitFor(mongoDb);
 

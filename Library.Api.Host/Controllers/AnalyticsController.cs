@@ -1,6 +1,5 @@
 ﻿using Library.Application.Contracts.Analytics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace Library.Api.Host.Controllers;
 

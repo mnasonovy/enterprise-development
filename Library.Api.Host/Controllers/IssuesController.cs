@@ -51,11 +51,7 @@ public class IssuesController(IIssueService issueService, ILogger<IssuesControll
         if (id <= 0)
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
-        var result = await issueService.GetAsync(id);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Выдача с ID {id} не найдена");
-
+        var result = await issueService.GetAsync(id) ?? throw new KeyNotFoundException($"Выдача с ID {id} не найдена");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(GetAsync), id);
 
@@ -122,11 +118,7 @@ public class IssuesController(IIssueService issueService, ILogger<IssuesControll
         if (input.DaysCount <= 0)
             throw new ArgumentException($"DaysCount должен быть больше 0, получено: {input.DaysCount}");
 
-        var result = await issueService.UpdateAsync(id, input);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Выдача с ID {id} не найдена для обновления");
-
+        var result = await issueService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Выдача с ID {id} не найдена для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(UpdateAsync), id);
 

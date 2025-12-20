@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using Microsoft.Extensions.Logging;
 
 namespace Library.Api.Host.Middleware;
 

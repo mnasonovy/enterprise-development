@@ -61,11 +61,7 @@ public class BooksController(IBookService bookService, ILogger<BooksController> 
         if (id <= 0)
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
-        var result = await bookService.GetAsync(id);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Книга с ID {id} не найдена");
-
+        var result = await bookService.GetAsync(id) ?? throw new KeyNotFoundException($"Книга с ID {id} не найдена");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(GetAsync), id);
 
@@ -141,11 +137,7 @@ public class BooksController(IBookService bookService, ILogger<BooksController> 
         if (input.PublisherId <= 0)
             throw new ArgumentException($"PublisherId должен быть больше 0, получено: {input.PublisherId}");
 
-        var result = await bookService.UpdateAsync(id, input);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Книга с ID {id} не найдена для обновления");
-
+        var result = await bookService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Книга с ID {id} не найдена для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",
             nameof(UpdateAsync), id);
 

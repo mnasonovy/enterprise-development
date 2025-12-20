@@ -40,10 +40,8 @@ public class AuthorsController(
         if (id <= 0)
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
-        var result = await authorService.GetAsync(id);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Автор с ID {id} не найден");
+        var result = await authorService.GetAsync(id)
+            ?? throw new KeyNotFoundException($"Автор с ID {id} не найден");
 
         logger.LogInformation("{Method} executed successfully with id={Id} (200)", nameof(GetAsync), id);
         return Ok(result); // 200
@@ -56,7 +54,10 @@ public class AuthorsController(
     public async Task<IActionResult> CreateAsync([FromBody] AuthorCreateUpdateDto input)
     {
         logger.LogInformation("{Method} called", nameof(CreateAsync));
+        if (!ModelState.IsValid)
+        {
 
+        }
         if (input == null)
             throw new ArgumentNullException(nameof(input), "Тело запроса не может быть пусто");
 
@@ -90,11 +91,7 @@ public class AuthorsController(
         if (string.IsNullOrWhiteSpace(input.LastName))
             throw new ArgumentException("Фамилия не может быть пустой");
 
-        var result = await authorService.UpdateAsync(id, input);
-
-        if (result == null)
-            throw new KeyNotFoundException($"Автор с ID {id} не найден для обновления");
-
+        var result = await authorService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Автор с ID {id} не найден для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)", nameof(UpdateAsync), id);
         return Ok(result); // 200
     }
