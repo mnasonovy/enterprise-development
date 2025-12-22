@@ -1,5 +1,5 @@
 ﻿using Library.Application.Contracts.Analytics;
-using Library.Infrastructure.MongoEf.Contracts;
+using Library.Domain.RepositoryInterfaces;
 using Library.Infrastructure.MongoEf.Database;
 using Microsoft.EntityFrameworkCore;
 

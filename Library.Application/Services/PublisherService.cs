@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Library.Application.Contracts.Publishers;
 using Library.Domain.Models;
-using Library.Infrastructure.MongoEf.Contracts;
+using Library.Domain.RepositoryInterfaces;
 
 namespace Library.Application.Services;
 

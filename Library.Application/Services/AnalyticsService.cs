@@ -1,5 +1,5 @@
 ﻿using Library.Application.Contracts.Analytics;
-using Library.Infrastructure.MongoEf.Contracts;
+using Library.Domain.RepositoryInterfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Library.Application.Services;

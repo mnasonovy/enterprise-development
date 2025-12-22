@@ -1,4 +1,4 @@
-﻿using Library.Infrastructure.MongoEf.Contracts;
+﻿using Library.Domain.RepositoryInterfaces;
 using Library.Infrastructure.MongoEf.Database;
 using Library.Infrastructure.MongoEf.Repositories;
 using Microsoft.EntityFrameworkCore;

@@ -1,6 +1,6 @@
 ﻿using Library.Domain.Models;
 
-namespace Library.Infrastructure.MongoEf.Contracts;
+namespace Library.Domain.RepositoryInterfaces;
 
 /// <summary>
 /// Контракт репозитория для управления типами книг в MongoDB.

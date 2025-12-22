@@ -1,6 +1,6 @@
 ﻿using Library.Application.Contracts.Analytics;
 
-namespace Library.Infrastructure.MongoEf.Contracts;
+namespace Library.Domain.RepositoryInterfaces;
 
 /// <summary>
 /// Репозиторий для аналитических запросов.
