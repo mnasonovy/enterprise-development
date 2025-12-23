@@ -1,35 +1,36 @@
 using Projects;
 
-/// <summary>
-/// .NET Aspire AppHost - оркестрация контейнеризированного окружения разработки.
-/// 
-/// Отвечает за:
-/// - Запуск MongoDB контейнера с Mongo Express для администрирования БД
-/// - Создание базы данных Library в MongoDB
-/// - Регистрацию и настройку API сервиса с зависимостями от MongoDB
-/// 
-/// При запуске создаёт:
-/// 1. MongoDB контейнер с exposed портом для подключения
-/// 2. Mongo Express Dashboard (UI для работы с БД)
-/// 3. API сервис с автоматическим connection string в зависимости от MongoDB
-/// 
-/// Все компоненты взаимозависимы - API дожидается полной инициализации MongoDB перед стартом.
-/// </summary>
-
 var builder = DistributedApplication.CreateBuilder(args);
 
-// MongoDB контейнер с Mongo Express UI для администрирования БД
+// MongoDB + Mongo Express
 var mongo = builder.AddMongoDB("mongodb")
     .WithMongoExpress();
 
-// База данных Library, которая будет использоваться API сервисом
-var mongoDb = mongo.AddDatabase("library");
+var mongoDb = mongo.AddDatabase("LibraryDb");
 
-// REST API сервис с привязкой к MongoDB базе данных
-// WithReference автоматически передаёт connection string в конфигурацию
-// WaitFor гарантирует, что MongoDB полностью инициализирована перед стартом API
-_ = builder.AddProject<Library_Api_Host>("api")
+// NATS
+var nats = builder
+    .AddNats("nats")
+    .WithJetStream();
+
+// NATS NUI
+builder
+    .AddContainer("nats-nui", "ghcr.io/nats-nui/nui:edge")
+    .WithHttpEndpoint(name: "http", port: 8080, targetPort: 31311)
+    .WithVolume("nats-nui-db", "/db")
+    .WithVolume("nats-nui-proto", "/proto-schemas")
+    .WaitFor(nats);
+
+// API
+builder.AddProject<Library_Api_Host>("api")
     .WithReference(mongoDb)
+    .WithReference(nats)
+    .WithExternalHttpEndpoints()
     .WaitFor(mongoDb);
+
+// Generator
+builder.AddProject<Library_Generator_Nats>("generator")
+    .WithReference(nats)
+    .WaitFor(nats);
 
 builder.Build().Run();

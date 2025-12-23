@@ -6,69 +6,86 @@ using Library.Domain.RepositoryInterfaces;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для CRUD-операций над выданными книгами (Issue).
-/// Реализует интерфейс IIssueService и использует AutoMapper для преобразований DTO.
-/// Делегирует работу с базой данных репозиторю через интерфейс.
-/// Валидация данных осуществляется на уровне контроллера через DataAnnotations.
+/// Сервис для управления выдачами (выданными книгами) в библиотечной системе.
+/// Реализует CRUD операции и Upsert для синхронизации с NATS JetStream.
+/// Выдача отслеживает процесс: Книга → Читатель → Возврат.
 /// </summary>
 public class IssueService(IIssueRepository issueRepository, IMapper mapper) : IIssueService
 {
+    private readonly IIssueRepository _issueRepository = issueRepository;
+    private readonly IMapper _mapper = mapper;
+
     /// <summary>
-    /// Получить выданную книгу по идентификатору.
+    /// Получает информацию о выданной книге по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор выданной книги</param>
-    /// <returns>IssueDto или null если запись не найдена</returns>
     public async Task<IssueDto?> GetAsync(int id)
     {
-        var issue = await issueRepository.GetAsync(id);
-        return issue == null ? null : mapper.Map<IssueDto>(issue);
+        var issue = await _issueRepository.GetAsync(id);
+        return issue == null ? null : _mapper.Map<IssueDto>(issue);
     }
 
     /// <summary>
-    /// Получить список всех выданных книг.
+    /// Получает список всех выданных книг.
     /// </summary>
-    /// <returns>Неизменяемый список IssueDto всех выданных книг</returns>
     public async Task<IReadOnlyList<IssueDto>> GetListAsync()
     {
-        var issues = await issueRepository.GetListAsync();
-        return mapper.Map<IReadOnlyList<IssueDto>>(issues);
+        var issues = await _issueRepository.GetListAsync();
+        return _mapper.Map<IReadOnlyList<IssueDto>>(issues);
     }
 
     /// <summary>
-    /// Создать новую выданную книгу.
+    /// Создаёт новую запись о выданной книге.
+    /// Требует существующих BookId и ReaderId.
     /// </summary>
-    /// <param name="input">DTO с данными новой выданной книги</param>
-    /// <returns>IssueDto созданной записи с заполненным Id</returns>
     public async Task<IssueDto> CreateAsync(IssueCreateUpdateDto input)
     {
-        var issue = mapper.Map<Issue>(input);
-        var created = await issueRepository.CreateAsync(issue);
-        return mapper.Map<IssueDto>(created);
+        var issue = _mapper.Map<Issue>(input);
+        var created = await _issueRepository.CreateAsync(issue);
+        return _mapper.Map<IssueDto>(created);
     }
 
     /// <summary>
-    /// Обновить существующую выданную книгу.
+    /// Обновляет информацию о выданной книге.
+    /// Основное назначение - фиксация даты возврата.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор для обновления</param>
-    /// <param name="input">DTO с новыми данными выданной книги</param>
-    /// <returns>IssueDto обновленной записи или null если не найдена</returns>
     public async Task<IssueDto?> UpdateAsync(int id, IssueCreateUpdateDto input)
     {
-        var existing = await issueRepository.GetAsync(id);
+        var existing = await _issueRepository.GetAsync(id);
         if (existing == null)
             return null;
 
-        mapper.Map(input, existing);
-        var updated = await issueRepository.UpdateAsync(existing);
-        return updated == null ? null : mapper.Map<IssueDto>(updated);
+        _mapper.Map(input, existing);
+        var updated = await _issueRepository.UpdateAsync(existing);
+        return updated == null ? null : _mapper.Map<IssueDto>(updated);
     }
 
     /// <summary>
-    /// Удалить выданную книгу по идентификатору.
+    /// Удаляет запись о выданной книге по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор для удаления</param>
     public async Task DeleteAsync(int id)
     {
-        await issueRepository.DeleteAsync(id);
+        await _issueRepository.DeleteAsync(id);
+    }
+
+    /// <summary>
+    /// Создаёт новую выдачу или обновляет существующую (Upsert).
+    /// Идемпотентная операция для синхронизации из NATS.
+    /// </summary>
+    public async Task<IssueDto> UpsertAsync(IssueCreateUpdateDto input)
+    {
+        var existing = await _issueRepository.GetAsync(input.Id);
+
+        if (existing != null)
+        {
+            _mapper.Map(input, existing);
+            var updated = await _issueRepository.UpdateAsync(existing);
+            return _mapper.Map<IssueDto>(updated)!;
+        }
+        else
+        {
+            var issue = _mapper.Map<Issue>(input);
+            var created = await _issueRepository.CreateAsync(issue);
+            return _mapper.Map<IssueDto>(created);
+        }
     }
 }

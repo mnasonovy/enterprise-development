@@ -6,68 +6,84 @@ using Library.Domain.RepositoryInterfaces;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для CRUD-операций над читателями.
-/// Реализует интерфейс IReaderService и использует AutoMapper для преобразований DTO.
-/// Делегирует работу с базой данных репозиторию через интерфейс.
+/// Сервис для управления читателями в библиотечной системе.
+/// Реализует CRUD операции и Upsert для синхронизации с NATS JetStream.
+/// Читатели - зарегистрированные пользователи, которые могут брать книги.
 /// </summary>
 public class ReaderService(IReaderRepository readerRepository, IMapper mapper) : IReaderService
 {
+    private readonly IReaderRepository _readerRepository = readerRepository;
+    private readonly IMapper _mapper = mapper;
+
     /// <summary>
-    /// Получить читателя по идентификатору.
+    /// Получает читателя по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор читателя</param>
-    /// <returns>ReaderDto или null если читатель не найден</returns>
     public async Task<ReaderDto?> GetAsync(int id)
     {
-        var reader = await readerRepository.ReadAsync(id);
-        return reader == null ? null : mapper.Map<ReaderDto>(reader);
+        var reader = await _readerRepository.ReadAsync(id);
+        return reader == null ? null : _mapper.Map<ReaderDto>(reader);
     }
 
     /// <summary>
-    /// Получить список всех читателей.
+    /// Получает список всех читателей.
     /// </summary>
-    /// <returns>Неизменяемый список ReaderDto всех читателей</returns>
     public async Task<IReadOnlyList<ReaderDto>> GetListAsync()
     {
-        var readers = await readerRepository.ReadAllAsync();
-        return mapper.Map<IReadOnlyList<ReaderDto>>(readers);
+        var readers = await _readerRepository.ReadAllAsync();
+        return _mapper.Map<IReadOnlyList<ReaderDto>>(readers);
     }
 
     /// <summary>
-    /// Создать нового читателя.
+    /// Создаёт нового читателя и регистрирует в системе.
     /// </summary>
-    /// <param name="input">DTO с данными нового читателя</param>
-    /// <returns>ReaderDto созданного читателя с заполненным Id</returns>
     public async Task<ReaderDto> CreateAsync(ReaderCreateUpdateDto input)
     {
-        var reader = mapper.Map<Reader>(input);
-        var created = await readerRepository.CreateAsync(reader);
-        return mapper.Map<ReaderDto>(created);
+        var reader = _mapper.Map<Reader>(input);
+        var created = await _readerRepository.CreateAsync(reader);
+        return _mapper.Map<ReaderDto>(created);
     }
 
     /// <summary>
-    /// Обновить существующего читателя.
+    /// Обновляет информацию об существующем читателе.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор читателя для обновления</param>
-    /// <param name="input">DTO с новыми данными читателя</param>
-    /// <returns>ReaderDto обновленного читателя или null если читатель не найден</returns>
     public async Task<ReaderDto?> UpdateAsync(int id, ReaderCreateUpdateDto input)
     {
-        var existing = await readerRepository.ReadAsync(id);
+        var existing = await _readerRepository.ReadAsync(id);
         if (existing == null)
             return null;
 
-        mapper.Map(input, existing);
-        var updated = await readerRepository.UpdateAsync(existing);
-        return updated == null ? null : mapper.Map<ReaderDto>(updated);
+        _mapper.Map(input, existing);
+        var updated = await _readerRepository.UpdateAsync(existing);
+        return updated == null ? null : _mapper.Map<ReaderDto>(updated);
     }
 
     /// <summary>
-    /// Удалить читателя по идентификатору.
+    /// Удаляет читателя по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор читателя для удаления</param>
     public async Task DeleteAsync(int id)
     {
-        await readerRepository.DeleteAsync(id);
+        await _readerRepository.DeleteAsync(id);
+    }
+
+    /// <summary>
+    /// Создаёт нового читателя или обновляет существующего (Upsert).
+    /// Идемпотентная операция для синхронизации из NATS.
+    /// </summary>
+    public async Task<ReaderDto> UpsertAsync(ReaderCreateUpdateDto input)
+    {
+        var existing = await _readerRepository.ReadAsync(input.Id);
+
+        if (existing != null)
+        {
+            _mapper.Map(input, existing);
+            var updated = await _readerRepository.UpdateAsync(existing);
+            return _mapper.Map<ReaderDto>(updated)!;
+        }
+        else
+        {
+            var reader = _mapper.Map<Reader>(input);
+            var created = await _readerRepository.CreateAsync(reader);
+            return _mapper.Map<ReaderDto>(created);
+        }
     }
 }

@@ -6,68 +6,83 @@ using Library.Domain.RepositoryInterfaces;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для управления авторами.
-/// Реализует интерфейс IAuthorService, обеспечивая выполнение CRUD операций над авторами.
-/// Использует AutoMapper для преобразования между Domain моделями и DTO.
+/// Сервис для управления авторами в библиотечной системе.
+/// Реализует CRUD операции и Upsert для синхронизации с NATS JetStream.
 /// </summary>
 public class AuthorService(IAuthorRepository authorRepository, IMapper mapper) : IAuthorService
 {
+    private readonly IAuthorRepository _authorRepository = authorRepository;
+    private readonly IMapper _mapper = mapper;
+
     /// <summary>
-    /// Получает автора по уникальному идентификатору.
+    /// Получает автора по идентификатору.
     /// </summary>
-    /// <param name="id">Идентификатор автора для поиска.</param>
-    /// <returns>DTO автора, если найден; null если автор не существует.</returns>
     public async Task<AuthorDto?> GetAsync(int id)
     {
-        var author = await authorRepository.ReadAsync(id);
-        return author == null ? null : mapper.Map<AuthorDto>(author);
+        var author = await _authorRepository.ReadAsync(id);
+        return author == null ? null : _mapper.Map<AuthorDto>(author);
     }
 
     /// <summary>
     /// Получает список всех авторов.
     /// </summary>
-    /// <returns>Коллекция DTO всех авторов. Если авторов нет, возвращает пустой список.</returns>
     public async Task<IReadOnlyList<AuthorDto>> GetListAsync()
     {
-        var authors = await authorRepository.ReadAllAsync();
-        return mapper.Map<IReadOnlyList<AuthorDto>>(authors);
+        var authors = await _authorRepository.ReadAllAsync();
+        return _mapper.Map<IReadOnlyList<AuthorDto>>(authors);
     }
 
     /// <summary>
-    /// Создаёт нового автора в базе данных.
+    /// Создаёт нового автора.
     /// </summary>
-    /// <param name="input">DTO с данными нового автора.</param>
-    /// <returns>DTO созданного автора с назначенным идентификатором.</returns>
     public async Task<AuthorDto> CreateAsync(AuthorCreateUpdateDto input)
     {
-        var author = mapper.Map<Author>(input);
-        var created = await authorRepository.CreateAsync(author);
-        return mapper.Map<AuthorDto>(created);
+        var author = _mapper.Map<Author>(input);
+        var created = await _authorRepository.CreateAsync(author);
+        return _mapper.Map<AuthorDto>(created);
     }
 
     /// <summary>
-    /// Обновляет информацию об существующем авторе.
+    /// Обновляет существующего автора.
     /// </summary>
-    /// <param name="id">Идентификатор автора для обновления.</param>
-    /// <param name="input">DTO с новыми данными автора.</param>
-    /// <returns>Обновленный DTO автора, если успешно; null если автор не найден.</returns>
     public async Task<AuthorDto?> UpdateAsync(int id, AuthorCreateUpdateDto input)
     {
-        var existing = await authorRepository.ReadAsync(id);
+        var existing = await _authorRepository.ReadAsync(id);
         if (existing == null)
             return null;
 
-        mapper.Map(input, existing);
-        var updated = await authorRepository.UpdateAsync(existing);
-        return updated == null ? null : mapper.Map<AuthorDto>(updated);
+        _mapper.Map(input, existing);
+        var updated = await _authorRepository.UpdateAsync(existing);
+        return updated == null ? null : _mapper.Map<AuthorDto>(updated);
     }
 
     /// <summary>
-    /// Удаляет автора из базы данных по идентификатору.
+    /// Удаляет автора по идентификатору.
     /// </summary>
-    /// <param name="id">Идентификатор автора для удаления.</param>
     public async Task DeleteAsync(int id)
     {
-        await authorRepository.DeleteAsync(id);
+        await _authorRepository.DeleteAsync(id);
+    }
+
+    /// <summary>
+    /// Создаёт нового автора или обновляет существующего (Upsert).
+    /// Идемпотентная операция для синхронизации из NATS.
+    /// </summary>
+    public async Task<AuthorDto> UpsertAsync(AuthorCreateUpdateDto input)
+    {
+        var existing = await _authorRepository.ReadAsync(input.Id);
+
+        if (existing != null)
+        {
+            _mapper.Map(input, existing);
+            var updated = await _authorRepository.UpdateAsync(existing);
+            return _mapper.Map<AuthorDto>(updated)!;
+        }
+        else
+        {
+            var author = _mapper.Map<Author>(input);
+            var created = await _authorRepository.CreateAsync(author);
+            return _mapper.Map<AuthorDto>(created);
+        }
     }
 }

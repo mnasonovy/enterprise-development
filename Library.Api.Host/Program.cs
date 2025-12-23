@@ -1,9 +1,23 @@
 ﻿using Library.Api.Host.Middleware;
+using Library.Api.Host.Services;
 using Library.Application.Extensions;
 using Library.Infrastructure.MongoEf.Extensions;
+using Library.Infrastructure.Nats;
+using Microsoft.OpenApi.Models;
+using NATS.Client.Core;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// -------------------------
+// MongoDB connection string
+// -------------------------
+var mongoConnectionString = builder.Configuration.GetConnectionString("mongodb")
+    ?? "mongodb://mongodb:27017";
+
+Console.WriteLine($"[API] MONGO CS from config: '{mongoConnectionString}'");
+
+// Логирование
 builder.Services.AddLogging(configure =>
 {
     configure.ClearProviders();
@@ -11,15 +25,28 @@ builder.Services.AddLogging(configure =>
     configure.SetMinimumLevel(LogLevel.Information);
 });
 
-var mongoConnectionString = builder.Configuration.GetConnectionString("mongodb")
-    ?? throw new InvalidOperationException("MongoDB connection string 'mongodb' не найдена в appsettings.json");
-
+// MongoDB
 builder.Services
-    .AddMongoDbContext(mongoConnectionString, "library")
+    .AddMongoDbContext(mongoConnectionString, "LibraryDb")
     .AddRepositories()
     .AddApplicationServices()
     .AddAutoMapperConfiguration();
 
+// -------------------------
+// NATS connection string
+// -------------------------
+var natsConnectionString = builder.Configuration.GetConnectionString("nats")
+    ?? "nats://nats:4222";
+
+Console.WriteLine($"[API] NATS CS from config: '{natsConnectionString}'");
+
+builder.Services.AddSingleton<INatsConnection>(_ =>
+    new NatsConnection(new NatsOpts { Url = natsConnectionString }));
+
+builder.Services.AddSingleton<INatsConsumer, NatsConsumer>();
+builder.Services.AddHostedService<NatsConsumerService>();
+
+// API + Swagger
 builder.Services
     .AddControllers()
     .ConfigureApiBehaviorOptions(options =>
@@ -31,23 +58,22 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    c.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Library Management API",
         Version = "v1",
-        Description = "REST API для управления библиотекой",
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
-        {
-            Name = "Library Support",
-            Url = new Uri("https://localhost:7000")
-        }
+        Description = "REST API для управления библиотечной системой."
     });
 
-    var xmlFile = Path.Combine(AppContext.BaseDirectory, "Library.Api.Host.xml");
-    if (File.Exists(xmlFile))
-        c.IncludeXmlComments(xmlFile);
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+    }
 });
 
+// Pipeline
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
@@ -62,7 +88,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

@@ -17,6 +17,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.AppHost", "Library.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Infrastructure.MongoEf", "Library.Infrastructure.MongoEf\Library.Infrastructure.MongoEf.csproj", "{09FF1539-E302-4F8A-9668-70A7F6B21D85}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Infrastructure.Nats", "Library.Infrastructure.Nats\Library.Infrastructure.Nats.csproj", "{42A41362-BFD6-4931-A77E-55C7F8F8C7D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Generator.Nats", "Library.Generator.Nats\Library.Generator.Nats.csproj", "{8D60893C-073E-47C4-8386-0E01E742E867}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{09FF1539-E302-4F8A-9668-70A7F6B21D85}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09FF1539-E302-4F8A-9668-70A7F6B21D85}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09FF1539-E302-4F8A-9668-70A7F6B21D85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42A41362-BFD6-4931-A77E-55C7F8F8C7D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42A41362-BFD6-4931-A77E-55C7F8F8C7D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42A41362-BFD6-4931-A77E-55C7F8F8C7D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42A41362-BFD6-4931-A77E-55C7F8F8C7D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8D60893C-073E-47C4-8386-0E01E742E867}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8D60893C-073E-47C4-8386-0E01E742E867}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8D60893C-073E-47C4-8386-0E01E742E867}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8D60893C-073E-47C4-8386-0E01E742E867}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,162 @@
+[
+  {
+    "id": 1,
+    "name": "Penguin Random House"
+  },
+  {
+    "id": 2,
+    "name": "Hachette Book Group"
+  },
+  {
+    "id": 3,
+    "name": "HarperCollins"
+  },
+  {
+    "id": 4,
+    "name": "Simon & Schuster"
+  },
+  {
+    "id": 5,
+    "name": "Scholastic"
+  },
+  {
+    "id": 6,
+    "name": "Macmillan Publishers"
+  },
+  {
+    "id": 7,
+    "name": "Oxford University Press"
+  },
+  {
+    "id": 8,
+    "name": "Cambridge University Press"
+  },
+  {
+    "id": 9,
+    "name": "Pearson Education"
+  },
+  {
+    "id": 10,
+    "name": "Cengage Learning"
+  },
+  {
+    "id": 11,
+    "name": "Wiley-Blackwell"
+  },
+  {
+    "id": 12,
+    "name": "Springer Nature"
+  },
+  {
+    "id": 13,
+    "name": "Elsevier"
+  },
+  {
+    "id": 14,
+    "name": "Taylor & Francis"
+  },
+  {
+    "id": 15,
+    "name": "SAGE Publications"
+  },
+  {
+    "id": 16,
+    "name": "АСТ"
+  },
+  {
+    "id": 17,
+    "name": "Эксмо"
+  },
+  {
+    "id": 18,
+    "name": "Издательство 1С"
+  },
+  {
+    "id": 19,
+    "name": "Лань"
+  },
+  {
+    "id": 20,
+    "name": "Юрайт"
+  },
+  {
+    "id": 21,
+    "name": "МИФ"
+  },
+  {
+    "id": 22,
+    "name": "Издательство Манн, Иванов и Фербер"
+  },
+  {
+    "id": 23,
+    "name": "Питер"
+  },
+  {
+    "id": 24,
+    "name": "BHV-СПб"
+  },
+  {
+    "id": 25,
+    "name": "Бином"
+  },
+  {
+    "id": 26,
+    "name": "Дело"
+  },
+  {
+    "id": 27,
+    "name": "Альпина Паблишер"
+  },
+  {
+    "id": 28,
+    "name": "Вильямс"
+  },
+  {
+    "id": 29,
+    "name": "Лесная книга"
+  },
+  {
+    "id": 30,
+    "name": "Издательский дом Мещерякова"
+  },
+  {
+    "id": 31,
+    "name": "Издательство АСН"
+  },
+  {
+    "id": 32,
+    "name": "Азбука"
+  },
+  {
+    "id": 33,
+    "name": "ОЛМА Медиа Групп"
+  },
+  {
+    "id": 34,
+    "name": "Издательство Иванова"
+  },
+  {
+    "id": 35,
+    "name": "Молодая гвардия"
+  },
+  {
+    "id": 36,
+    "name": "Дом книги"
+  },
+  {
+    "id": 37,
+    "name": "Издательство Детская литература"
+  },
+  {
+    "id": 38,
+    "name": "Издательство Советская энциклопедия"
+  },
+  {
+    "id": 39,
+    "name": "Издательство Наука"
+  },
+  {
+    "id": 40,
+    "name": "Издательство Искусство"
+  }
+]

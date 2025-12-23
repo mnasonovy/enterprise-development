@@ -6,68 +6,84 @@ using Library.Domain.RepositoryInterfaces;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для CRUD-операций над типами книг.
-/// Реализует интерфейс IBookTypeService и использует AutoMapper для преобразований DTO.
-/// Делегирует работу с базой данных репозиторию через интерфейс.
+/// Сервис для управления типами книг в библиотечной системе.
+/// Реализует CRUD операции и Upsert для синхронизации с NATS JetStream.
+/// Типы книг (роман, учебник, справочник и т.д.) используются как справочник.
 /// </summary>
 public class BookTypeService(IBookTypeRepository bookTypeRepository, IMapper mapper) : IBookTypeService
 {
+    private readonly IBookTypeRepository _bookTypeRepository = bookTypeRepository;
+    private readonly IMapper _mapper = mapper;
+
     /// <summary>
-    /// Получить тип книги по идентификатору.
+    /// Получает тип книги по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор типа книги</param>
-    /// <returns>BookTypeDto или null если тип не найден</returns>
     public async Task<BookTypeDto?> GetAsync(int id)
     {
-        var bookType = await bookTypeRepository.ReadAsync(id);
-        return bookType == null ? null : mapper.Map<BookTypeDto>(bookType);
+        var bookType = await _bookTypeRepository.ReadAsync(id);
+        return bookType == null ? null : _mapper.Map<BookTypeDto>(bookType);
     }
 
     /// <summary>
-    /// Получить список всех типов книг.
+    /// Получает список всех типов книг.
     /// </summary>
-    /// <returns>Неизменяемый список BookTypeDto всех типов книг</returns>
     public async Task<IReadOnlyList<BookTypeDto>> GetListAsync()
     {
-        var bookTypes = await bookTypeRepository.ReadAllAsync();
-        return mapper.Map<IReadOnlyList<BookTypeDto>>(bookTypes);
+        var bookTypes = await _bookTypeRepository.ReadAllAsync();
+        return _mapper.Map<IReadOnlyList<BookTypeDto>>(bookTypes);
     }
 
     /// <summary>
-    /// Создать новый тип книги.
+    /// Создаёт новый тип книги.
     /// </summary>
-    /// <param name="input">DTO с данными нового типа</param>
-    /// <returns>BookTypeDto созданного типа с заполненным Id</returns>
     public async Task<BookTypeDto> CreateAsync(BookTypeCreateUpdateDto input)
     {
-        var bookType = mapper.Map<BookType>(input);
-        var created = await bookTypeRepository.CreateAsync(bookType);
-        return mapper.Map<BookTypeDto>(created);
+        var bookType = _mapper.Map<BookType>(input);
+        var created = await _bookTypeRepository.CreateAsync(bookType);
+        return _mapper.Map<BookTypeDto>(created);
     }
 
     /// <summary>
-    /// Обновить существующий тип книги.
+    /// Обновляет существующий тип книги.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор типа для обновления</param>
-    /// <param name="input">DTO с новыми данными типа</param>
-    /// <returns>BookTypeDto обновленного типа или null если тип не найден</returns>
     public async Task<BookTypeDto?> UpdateAsync(int id, BookTypeCreateUpdateDto input)
     {
-        var existing = await bookTypeRepository.ReadAsync(id);
+        var existing = await _bookTypeRepository.ReadAsync(id);
         if (existing == null)
             return null;
 
-        mapper.Map(input, existing);
-        var updated = await bookTypeRepository.UpdateAsync(existing);
-        return updated == null ? null : mapper.Map<BookTypeDto>(updated);
+        _mapper.Map(input, existing);
+        var updated = await _bookTypeRepository.UpdateAsync(existing);
+        return updated == null ? null : _mapper.Map<BookTypeDto>(updated);
     }
 
     /// <summary>
-    /// Удалить тип книги по идентификатору.
+    /// Удаляет тип книги по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор типа для удаления</param>
     public async Task DeleteAsync(int id)
     {
-        await bookTypeRepository.DeleteAsync(id);
+        await _bookTypeRepository.DeleteAsync(id);
+    }
+
+    /// <summary>
+    /// Создаёт новый тип книги или обновляет существующий (Upsert).
+    /// Идемпотентная операция для синхронизации из NATS.
+    /// </summary>
+    public async Task<BookTypeDto> UpsertAsync(BookTypeCreateUpdateDto input)
+    {
+        var existing = await _bookTypeRepository.ReadAsync(input.Id);
+
+        if (existing != null)
+        {
+            _mapper.Map(input, existing);
+            var updated = await _bookTypeRepository.UpdateAsync(existing);
+            return _mapper.Map<BookTypeDto>(updated)!;
+        }
+        else
+        {
+            var bookType = _mapper.Map<BookType>(input);
+            var created = await _bookTypeRepository.CreateAsync(bookType);
+            return _mapper.Map<BookTypeDto>(created);
+        }
     }
 }

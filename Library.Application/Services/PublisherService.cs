@@ -6,68 +6,84 @@ using Library.Domain.RepositoryInterfaces;
 namespace Library.Application.Services;
 
 /// <summary>
-/// Сервис для CRUD-операций над издателями.
-/// Реализует интерфейс IPublisherService и использует AutoMapper для преобразований DTO.
-/// Делегирует работу с базой данных репозиторию через интерфейс.
+/// Сервис для управления издателями в библиотечной системе.
+/// Реализует CRUD операции и Upsert для синхронизации с NATS JetStream.
+/// Издатели используются как справочник при работе с книгами.
 /// </summary>
 public class PublisherService(IPublisherRepository publisherRepository, IMapper mapper) : IPublisherService
 {
+    private readonly IPublisherRepository _publisherRepository = publisherRepository;
+    private readonly IMapper _mapper = mapper;
+
     /// <summary>
-    /// Получить издателя по идентификатору.
+    /// Получает издателя по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор издателя</param>
-    /// <returns>PublisherDto или null если издатель не найден</returns>
     public async Task<PublisherDto?> GetAsync(int id)
     {
-        var publisher = await publisherRepository.ReadAsync(id);
-        return publisher == null ? null : mapper.Map<PublisherDto>(publisher);
+        var publisher = await _publisherRepository.ReadAsync(id);
+        return publisher == null ? null : _mapper.Map<PublisherDto>(publisher);
     }
 
     /// <summary>
-    /// Получить список всех издателей.
+    /// Получает список всех издателей.
     /// </summary>
-    /// <returns>Неизменяемый список PublisherDto всех издателей</returns>
     public async Task<IReadOnlyList<PublisherDto>> GetListAsync()
     {
-        var publishers = await publisherRepository.ReadAllAsync();
-        return mapper.Map<IReadOnlyList<PublisherDto>>(publishers);
+        var publishers = await _publisherRepository.ReadAllAsync();
+        return _mapper.Map<IReadOnlyList<PublisherDto>>(publishers);
     }
 
     /// <summary>
-    /// Создать нового издателя.
+    /// Создаёт нового издателя.
     /// </summary>
-    /// <param name="input">DTO с данными нового издателя</param>
-    /// <returns>PublisherDto созданного издателя с заполненным Id</returns>
     public async Task<PublisherDto> CreateAsync(PublisherCreateUpdateDto input)
     {
-        var publisher = mapper.Map<Publisher>(input);
-        var created = await publisherRepository.CreateAsync(publisher);
-        return mapper.Map<PublisherDto>(created);
+        var publisher = _mapper.Map<Publisher>(input);
+        var created = await _publisherRepository.CreateAsync(publisher);
+        return _mapper.Map<PublisherDto>(created);
     }
 
     /// <summary>
-    /// Обновить существующего издателя.
+    /// Обновляет существующего издателя.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор издателя для обновления</param>
-    /// <param name="input">DTO с новыми данными издателя</param>
-    /// <returns>PublisherDto обновленного издателя или null если издатель не найден</returns>
     public async Task<PublisherDto?> UpdateAsync(int id, PublisherCreateUpdateDto input)
     {
-        var existing = await publisherRepository.ReadAsync(id);
+        var existing = await _publisherRepository.ReadAsync(id);
         if (existing == null)
             return null;
 
-        mapper.Map(input, existing);
-        var updated = await publisherRepository.UpdateAsync(existing);
-        return updated == null ? null : mapper.Map<PublisherDto>(updated);
+        _mapper.Map(input, existing);
+        var updated = await _publisherRepository.UpdateAsync(existing);
+        return updated == null ? null : _mapper.Map<PublisherDto>(updated);
     }
 
     /// <summary>
-    /// Удалить издателя по идентификатору.
+    /// Удаляет издателя по идентификатору.
     /// </summary>
-    /// <param name="id">Уникальный идентификатор издателя для удаления</param>
     public async Task DeleteAsync(int id)
     {
-        await publisherRepository.DeleteAsync(id);
+        await _publisherRepository.DeleteAsync(id);
+    }
+
+    /// <summary>
+    /// Создаёт нового издателя или обновляет существующего (Upsert).
+    /// Идемпотентная операция для синхронизации из NATS.
+    /// </summary>
+    public async Task<PublisherDto> UpsertAsync(PublisherCreateUpdateDto input)
+    {
+        var existing = await _publisherRepository.ReadAsync(input.Id);
+
+        if (existing != null)
+        {
+            _mapper.Map(input, existing);
+            var updated = await _publisherRepository.UpdateAsync(existing);
+            return _mapper.Map<PublisherDto>(updated)!;
+        }
+        else
+        {
+            var publisher = _mapper.Map<Publisher>(input);
+            var created = await _publisherRepository.CreateAsync(publisher);
+            return _mapper.Map<PublisherDto>(created);
+        }
     }
 }

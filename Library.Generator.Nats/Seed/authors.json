@@ -1,0 +1,256 @@
+[
+  {
+    "Id": 1,
+    "LastName": "Пушкин",
+    "Initials": "А.С."
+  },
+  {
+    "Id": 2,
+    "LastName": "Лермонтов",
+    "Initials": "М.Ю."
+  },
+  {
+    "Id": 3,
+    "LastName": "Гоголь",
+    "Initials": "Н.В."
+  },
+  {
+    "Id": 4,
+    "LastName": "Толстой",
+    "Initials": "Л.Н."
+  },
+  {
+    "Id": 5,
+    "LastName": "Тургенев",
+    "Initials": "И.С."
+  },
+  {
+    "Id": 6,
+    "LastName": "Достоевский",
+    "Initials": "Ф.М."
+  },
+  {
+    "Id": 7,
+    "LastName": "Чехов",
+    "Initials": "А.П."
+  },
+  {
+    "Id": 8,
+    "LastName": "Горький",
+    "Initials": "М.Е."
+  },
+  {
+    "Id": 9,
+    "LastName": "Булгаков",
+    "Initials": "М.А."
+  },
+  {
+    "Id": 10,
+    "LastName": "Шолохов",
+    "Initials": "М.А."
+  },
+
+  {
+    "Id": 11,
+    "LastName": "Солженицын",
+    "Initials": "А.И."
+  },
+  {
+    "Id": 12,
+    "LastName": "Набоков",
+    "Initials": "В.В."
+  },
+  {
+    "Id": 13,
+    "LastName": "Куприн",
+    "Initials": "А.И."
+  },
+  {
+    "Id": 14,
+    "LastName": "Пришвин",
+    "Initials": "М.М."
+  },
+  {
+    "Id": 15,
+    "LastName": "Распутин",
+    "Initials": "В.Г."
+  },
+  {
+    "Id": 16,
+    "LastName": "Астафьев",
+    "Initials": "В.П."
+  },
+  {
+    "Id": 17,
+    "LastName": "Платонов",
+    "Initials": "А.П."
+  },
+  {
+    "Id": 18,
+    "LastName": "Тынянов",
+    "Initials": "Ю.Н."
+  },
+  {
+    "Id": 19,
+    "LastName": "Гроссман",
+    "Initials": "В.С."
+  },
+  {
+    "Id": 20,
+    "LastName": "Катаев",
+    "Initials": "В.П."
+  },
+
+  {
+    "Id": 21,
+    "LastName": "Ахматова",
+    "Initials": "А.А."
+  },
+  {
+    "Id": 22,
+    "LastName": "Цветаева",
+    "Initials": "М.И."
+  },
+  {
+    "Id": 23,
+    "LastName": "Мандельштам",
+    "Initials": "О.Э."
+  },
+  {
+    "Id": 24,
+    "LastName": "Пастернак",
+    "Initials": "Б.Л."
+  },
+  {
+    "Id": 25,
+    "LastName": "Маяковский",
+    "Initials": "В.В."
+  },
+  {
+    "Id": 26,
+    "LastName": "Есенин",
+    "Initials": "С.А."
+  },
+  {
+    "Id": 27,
+    "LastName": "Блок",
+    "Initials": "А.А."
+  },
+  {
+    "Id": 28,
+    "LastName": "Фет",
+    "Initials": "А.А."
+  },
+  {
+    "Id": 29,
+    "LastName": "Тютчев",
+    "Initials": "Ф.И."
+  },
+  {
+    "Id": 30,
+    "LastName": "Некрасов",
+    "Initials": "Н.А."
+  },
+
+  {
+    "Id": 31,
+    "LastName": "Островский",
+    "Initials": "А.Н."
+  },
+  {
+    "Id": 32,
+    "LastName": "Гончаров",
+    "Initials": "И.А."
+  },
+  {
+    "Id": 33,
+    "LastName": "Салтыков-Щедрин",
+    "Initials": "М.Е."
+  },
+  {
+    "Id": 34,
+    "LastName": "Лесков",
+    "Initials": "Н.С."
+  },
+  {
+    "Id": 35,
+    "LastName": "Клюев",
+    "Initials": "Н.А."
+  },
+  {
+    "Id": 36,
+    "LastName": "Замятин",
+    "Initials": "Е.И."
+  },
+  {
+    "Id": 37,
+    "LastName": "Платонова",
+    "Initials": "К.И."
+  },
+  {
+    "Id": 38,
+    "LastName": "Трифонов",
+    "Initials": "Ю.В."
+  },
+  {
+    "Id": 39,
+    "LastName": "Айтматов",
+    "Initials": "Ч.Т."
+  },
+  {
+    "Id": 40,
+    "LastName": "Рыбаков",
+    "Initials": "А.Н."
+  },
+
+  {
+    "Id": 41,
+    "LastName": "Алексиевич",
+    "Initials": "С.А."
+  },
+  {
+    "Id": 42,
+    "LastName": "Пикуль",
+    "Initials": "В.С."
+  },
+  {
+    "Id": 43,
+    "LastName": "Стругацкий",
+    "Initials": "А.Н."
+  },
+  {
+    "Id": 44,
+    "LastName": "Стругацкий",
+    "Initials": "Б.Н."
+  },
+  {
+    "Id": 45,
+    "LastName": "Беляев",
+    "Initials": "А.Р."
+  },
+  {
+    "Id": 46,
+    "LastName": "Кассиль",
+    "Initials": "Л.А."
+  },
+  {
+    "Id": 47,
+    "LastName": "Паустовский",
+    "Initials": "К.Г."
+  },
+  {
+    "Id": 48,
+    "LastName": "Драгунский",
+    "Initials": "В.Ю."
+  },
+  {
+    "Id": 49,
+    "LastName": "Носов",
+    "Initials": "Н.Н."
+  },
+  {
+    "Id": 50,
+    "LastName": "Успенский",
+    "Initials": "Э.Н."
+  }
+]

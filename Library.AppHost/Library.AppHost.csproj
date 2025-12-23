@@ -11,12 +11,15 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.0" />
-		<PackageReference Include="Aspire.Hosting.MongoDB" Version="9.5.0" />
+		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.0" />
+		<PackageReference Include="Aspire.Hosting.MongoDB" Version="13.1.0" />
+		<PackageReference Include="Aspire.Hosting.Nats" Version="13.1.0" />
+		<PackageReference Include="Aspire.NATS.Net" Version="13.1.0" />
 	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Library.Api.Host\Library.Api.Host.csproj" />
+    <ProjectReference Include="..\Library.Generator.Nats\Library.Generator.Nats.csproj" />
   </ItemGroup>
 
 </Project>

@@ -7,16 +7,19 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Aspire.Hosting.Nats" Version="13.1.0" />
 		<PackageReference Include="AutoMapper" Version="16.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
-		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.22" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\Library.Application.Contracts\Library.Application.Contracts.csproj" />
 		<ProjectReference Include="..\Library.Application\Library.Application.csproj" />
 		<ProjectReference Include="..\Library.Infrastructure.MongoEf\Library.Infrastructure.MongoEf.csproj" />
+		<ProjectReference Include="..\Library.Infrastructure.Nats\Library.Infrastructure.Nats.csproj" />
 	</ItemGroup>
 
 </Project>
