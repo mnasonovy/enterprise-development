@@ -39,6 +39,21 @@ public class BookTypeRepository(MongoDbContext context) : IBookTypeRepository
     }
 
     /// <summary>
+    /// Получить максимальный ID из существующих типов книг.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если типов нет</returns>
+    public async Task<int> GetMaxIdAsync()
+    {
+        var maxId = await _bookTypes
+            .AsNoTracking()
+            .OrderByDescending(bt => bt.Id)
+            .Select(bt => bt.Id)
+            .FirstOrDefaultAsync();
+        return maxId > 0 ? maxId : 0;
+    }
+
+    /// <summary>
     /// Создать новый тип книги в базе данных.
     /// </summary>
     /// <param name="entity">Объект BookType для сохранения</param>

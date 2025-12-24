@@ -66,6 +66,7 @@ public class BookTypesController(IBookTypeService bookTypeService, ILogger<BookT
 
     /// <summary>
     /// Создать новый тип книги.
+    /// ID генерируется автоматически на сервере.
     /// HTTP POST: /api/booktypes
     /// </summary>
     [HttpPost]
@@ -78,9 +79,6 @@ public class BookTypesController(IBookTypeService bookTypeService, ILogger<BookT
 
         if (input == null)
             throw new ArgumentNullException(nameof(input), "Тело запроса не может быть пусто");
-
-        if (input.Id <= 0)
-            throw new ArgumentException($"ID должен быть больше 0, получено: {input.Id}");
 
         if (string.IsNullOrWhiteSpace(input.Name))
             throw new ArgumentException("Название типа книги (Name) не может быть пустым");

@@ -63,8 +63,8 @@ public sealed class BookTypeSender(INatsProducer producer, ILogger<BookTypeSende
         if (item is BookTypeCreateUpdateDto dto)
         {
             _logger.LogInformation(
-                "BookType sent to NATS: [{Sent}/{Total}] {Id} {Name}",
-                sent, total, dto.Id, dto.Name);
+                "BookType sent to NATS: [{Sent}/{Total}] {Name}",
+                sent, total, dto.Name);
         }
     }
 }

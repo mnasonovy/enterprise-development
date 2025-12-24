@@ -53,7 +53,8 @@ public class MappingProfile : Profile
     private void MapBookTypes()
     {
         CreateMap<BookType, BookTypeDto>().ReverseMap();
-        CreateMap<BookType, BookTypeCreateUpdateDto>().ReverseMap();
+        CreateMap<BookTypeCreateUpdateDto, BookType>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
     /// <summary>Маппинги для выданных книг</summary>
