@@ -33,11 +33,14 @@ public class AuthorService(IAuthorRepository authorRepository, IMapper mapper) :
     }
 
     /// <summary>
-    /// Создаёт нового автора.
+    /// Создаёт нового автора с автоматической генерацией ID.
     /// </summary>
     public async Task<AuthorDto> CreateAsync(AuthorCreateUpdateDto input)
     {
+        var maxId = await _authorRepository.GetMaxIdAsync();
         var author = _mapper.Map<Author>(input);
+        author.Id = maxId + 1;  // ← генерируем новый ID
+
         var created = await _authorRepository.CreateAsync(author);
         return _mapper.Map<AuthorDto>(created);
     }
@@ -66,23 +69,16 @@ public class AuthorService(IAuthorRepository authorRepository, IMapper mapper) :
 
     /// <summary>
     /// Создаёт нового автора или обновляет существующего (Upsert).
+    /// При создании генерируется новый ID автоматически.
     /// Идемпотентная операция для синхронизации из NATS.
     /// </summary>
     public async Task<AuthorDto> UpsertAsync(AuthorCreateUpdateDto input)
     {
-        var existing = await _authorRepository.ReadAsync(input.Id);
+        var maxId = await _authorRepository.GetMaxIdAsync();
+        var author = _mapper.Map<Author>(input);
+        author.Id = maxId + 1;  // ← генерируем новый ID при создании
 
-        if (existing != null)
-        {
-            _mapper.Map(input, existing);
-            var updated = await _authorRepository.UpdateAsync(existing);
-            return _mapper.Map<AuthorDto>(updated)!;
-        }
-        else
-        {
-            var author = _mapper.Map<Author>(input);
-            var created = await _authorRepository.CreateAsync(author);
-            return _mapper.Map<AuthorDto>(created);
-        }
+        var upsertedAuthor = await _authorRepository.CreateAsync(author);
+        return _mapper.Map<AuthorDto>(upsertedAuthor);
     }
 }

@@ -41,4 +41,11 @@ public interface IAuthorRepository
     /// <param name="id">Идентификатор автора для удаления.</param>
     /// <returns>true если автор был успешно удален; false если автор не найден.</returns>
     public Task<bool> DeleteAsync(int id);
+
+    /// <summary>
+    /// Получает максимальный ID автора из базы данных.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если авторов нет.</returns>
+    public Task<int> GetMaxIdAsync();
 }

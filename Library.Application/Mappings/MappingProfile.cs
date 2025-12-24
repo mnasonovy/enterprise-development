@@ -31,7 +31,8 @@ public class MappingProfile : Profile
     private void MapAuthors()
     {
         CreateMap<Author, AuthorDto>().ReverseMap();
-        CreateMap<Author, AuthorCreateUpdateDto>().ReverseMap();
+        CreateMap<AuthorCreateUpdateDto, Author>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
     /// <summary>Маппинги для книг</summary>

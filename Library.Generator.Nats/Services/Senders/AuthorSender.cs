@@ -63,8 +63,8 @@ public sealed class AuthorSender(INatsProducer producer, ILogger<AuthorSender> l
         if (item is AuthorCreateUpdateDto dto)
         {
             _logger.LogInformation(
-                "Author sent to NATS: [{Sent}/{Total}] {Id} {LastName}",
-                sent, total, dto.Id, dto.LastName);
+                "Author sent to NATS: [{Sent}/{Total}] {LastName}",
+                sent, total, dto.LastName);
         }
     }
 }

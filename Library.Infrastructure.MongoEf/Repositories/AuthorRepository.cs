@@ -81,4 +81,20 @@ public class AuthorRepository(MongoDbContext context) : IAuthorRepository
         await context.SaveChangesAsync();
         return true;
     }
+
+    /// <summary>
+    /// Получает максимальный ID автора из базы данных.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если авторов нет.</returns>
+    public async Task<int> GetMaxIdAsync()
+    {
+        var maxId = await _authors
+            .AsNoTracking()
+            .OrderByDescending(a => a.Id)
+            .Select(a => a.Id)
+            .FirstOrDefaultAsync();
+
+        return maxId > 0 ? maxId : 0;
+    }
 }

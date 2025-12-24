@@ -56,13 +56,11 @@ public class AuthorsController(
         logger.LogInformation("{Method} called", nameof(CreateAsync));
         if (!ModelState.IsValid)
         {
-
+            // Обработка ошибок валидации модели
         }
+
         if (input == null)
             throw new ArgumentNullException(nameof(input), "Тело запроса не может быть пусто");
-
-        if (input.Id <= 0)
-            throw new ArgumentException($"ID должен быть больше 0, получено: {input.Id}");
 
         if (string.IsNullOrWhiteSpace(input.LastName))
             throw new ArgumentException("Фамилия не может быть пустой");
