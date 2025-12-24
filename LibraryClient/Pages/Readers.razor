@@ -1,0 +1,155 @@
+﻿@page "/readers"
+@using LibraryClient.OpenApis
+@using LibraryClient.Models
+@inject LibraryApiWrapper Api
+
+<style>
+    :root {
+        --obsidian: #0B0B0D;
+        --graphite: #151619;
+        --silver: #D7D9DC;
+        --champagne: #D6B37A;
+        --light-gold: #E8C88D;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg, var(--obsidian), var(--graphite));
+        border-bottom: 3px solid var(--champagne);
+        padding: 40px;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 20px rgba(214, 179, 122, 0.15);
+    }
+
+        .page-header h1 {
+            color: var(--champagne);
+            font-size: 36px;
+            letter-spacing: 1px;
+        }
+
+    .page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 40px;
+    }
+
+    .table-wrapper {
+        background: linear-gradient(135deg, rgba(21, 22, 25, 0.5), rgba(11, 11, 13, 0.7));
+        border: 2px solid var(--champagne);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 8px 32px rgba(214, 179, 122, 0.1);
+        backdrop-filter: blur(10px);
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--silver);
+    }
+
+        .table thead {
+            background: linear-gradient(90deg, var(--obsidian), var(--graphite));
+            border-bottom: 2px solid var(--champagne);
+        }
+
+        .table th {
+            color: var(--champagne);
+            padding: 18px;
+            text-align: left;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .table td {
+            padding: 15px 18px;
+            border-bottom: 1px solid rgba(214, 179, 122, 0.1);
+        }
+
+        .table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+            .table tbody tr:hover {
+                background: rgba(214, 179, 122, 0.05);
+            }
+
+    .loading, .error, .no-data {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--champagne);
+        font-size: 18px;
+    }
+
+    .error {
+        color: #FFB3B3;
+    }
+</style>
+
+<div class="page-header">
+    <h1>👥 Читатели</h1>
+</div>
+
+<div class="page-container">
+    @if (isLoading)
+    {
+        <div class="loading">⏳ Загрузка читателей...</div>
+    }
+    else if (!string.IsNullOrEmpty(error))
+    {
+        <div class="error">❌ Ошибка: @error</div>
+    }
+    else if (readers is null || readers.Count == 0)
+    {
+        <div class="no-data">👥 Читателей пока нет.</div>
+    }
+    else
+    {
+        <div class="table-wrapper">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>ФИО</th>
+                        <th>Адрес</th>
+                        <th>Телефон</th>
+                        <th>Дата регистрации</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in readers)
+                    {
+                        <tr>
+                            <td>#@r.Id</td>
+                            <td><strong>@r.FullName</strong></td>
+                            <td>@(r.Address ?? "—")</td>
+                            <td>@(r.Phone ?? "—")</td>
+                            <td>@r.RegistrationDate.ToShortDateString()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ReaderClientDto> readers = new();
+    private bool isLoading = true;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            readers = await Api.GetReadersAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

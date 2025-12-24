@@ -46,6 +46,19 @@ builder.Services.AddSingleton<INatsConnection>(_ =>
 builder.Services.AddSingleton<INatsConsumer, NatsConsumer>();
 builder.Services.AddHostedService<NatsConsumerService>();
 
+// -------------------------
+// CORS
+// -------------------------
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
 // API + Swagger
 builder.Services
     .AddControllers()
@@ -77,6 +90,9 @@ builder.Services.AddSwaggerGen(c =>
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// CORS middleware (ВАЖНО: перед UseAuthorization)
+app.UseCors("AllowAll");
 
 if (app.Environment.IsDevelopment())
 {

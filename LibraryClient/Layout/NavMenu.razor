@@ -1,0 +1,86 @@
+﻿<link href="css/navmenu.css" rel="stylesheet" />
+
+<div class="sidebar-container">
+    <div class="sidebar-header">
+        <div class="sidebar-brand">
+            <span class="brand-icon">📚</span>
+            <span class="brand-text">Library Manager</span>
+        </div>
+        <button title="Меню навигации" class="sidebar-toggle" @onclick="ToggleNavMenu">
+            <span class="toggle-icon">☰</span>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav @(collapseNavMenu ? "collapsed" : "expanded")">
+        <div class="nav-section">
+            <h5 class="nav-section-title">МЕНЮ</h5>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All" @onclick="() => CloseNav()">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Главная</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="books" @onclick="() => CloseNav()">
+                    <span class="nav-icon">📖</span>
+                    <span class="nav-text">Книги</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="readers" @onclick="() => CloseNav()">
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-text">Читатели</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="issues" @onclick="() => CloseNav()">
+                    <span class="nav-icon">📤</span>
+                    <span class="nav-text">Выдачи</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-item">
+                <NavLink class="nav-link" href="analytics" @onclick="() => CloseNav()">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-text">Аналитика</span>
+                </NavLink>
+            </div>
+        </div>
+
+        <div class="nav-footer">
+            <div class="footer-item">
+                <span class="footer-icon">⚙️</span>
+                <span class="footer-text">Версия 1.0</span>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<style>
+    :root {
+        --obsidian: #0B0B0D;
+        --graphite: #151619;
+        --silver: #D7D9DC;
+        --champagne: #D6B37A;
+        --light-gold: #E8C88D;
+        --dark-gold: #A68D5B;
+    }
+</style>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private void CloseNav()
+    {
+        collapseNavMenu = true;
+    }
+}

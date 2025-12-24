@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Library.Api.Host\Library.Api.Host.csproj" />
     <ProjectReference Include="..\Library.Generator.Nats\Library.Generator.Nats.csproj" />
+    <ProjectReference Include="..\LibraryClient\LibraryClient.csproj" />
   </ItemGroup>
 
 </Project>

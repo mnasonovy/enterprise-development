@@ -1,0 +1,39 @@
+﻿@inherits LayoutComponentBase
+
+<link href="css/layout.css" rel="stylesheet" />
+
+<div class="layout-container">
+    <aside class="sidebar-wrapper">
+        <NavMenu />
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="header-top">
+            <div class="header-content">
+                <h1 class="page-title">📚 Library Manager</h1>
+                <div class="header-actions">
+                    <a href="/" class="header-link" title="Главная">🏠</a>
+                    <span class="header-divider">|</span>
+                    <span class="version-badge">v1.0</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <article class="content-area">
+                @Body
+            </article>
+        </main>
+
+        <footer class="footer-bottom">
+            <div class="footer-content">
+                <p>© 2025 Library Manager System - Премиум управление библиотекой</p>
+                <div class="footer-links">
+                    <a href="/">Главная</a>
+                    <span>•</span>
+                    <a href="https://github.com" target="_blank">GitHub</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+</div>

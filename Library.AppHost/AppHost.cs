@@ -22,7 +22,7 @@ builder
     .WaitFor(nats);
 
 // API
-builder.AddProject<Library_Api_Host>("api")
+var api = builder.AddProject<Library_Api_Host>("api")
     .WithReference(mongoDb)
     .WithReference(nats)
     .WithExternalHttpEndpoints()
@@ -32,5 +32,11 @@ builder.AddProject<Library_Api_Host>("api")
 builder.AddProject<Library_Generator_Nats>("generator")
     .WithReference(nats)
     .WaitFor(nats);
+
+// Blazor WASM Client (БЕЗ открытия браузера)
+builder.AddProject<LibraryClient>("client")
+    .WithExternalHttpEndpoints()
+    .WithArgs("--no-browser")
+    .WaitFor(api);
 
 builder.Build().Run();

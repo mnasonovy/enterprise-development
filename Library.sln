@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Infrastructure.Nats
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Generator.Nats", "Library.Generator.Nats\Library.Generator.Nats.csproj", "{8D60893C-073E-47C4-8386-0E01E742E867}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibraryClient", "LibraryClient\LibraryClient.csproj", "{F668F76E-0A1F-42FD-BF82-BCAF33DE5B8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{8D60893C-073E-47C4-8386-0E01E742E867}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D60893C-073E-47C4-8386-0E01E742E867}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D60893C-073E-47C4-8386-0E01E742E867}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F668F76E-0A1F-42FD-BF82-BCAF33DE5B8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F668F76E-0A1F-42FD-BF82-BCAF33DE5B8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F668F76E-0A1F-42FD-BF82-BCAF33DE5B8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F668F76E-0A1F-42FD-BF82-BCAF33DE5B8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
