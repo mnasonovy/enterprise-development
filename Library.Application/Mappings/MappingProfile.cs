@@ -73,7 +73,8 @@ public class MappingProfile : Profile
     private void MapPublishers()
     {
         CreateMap<Publisher, PublisherDto>().ReverseMap();
-        CreateMap<Publisher, PublisherCreateUpdateDto>().ReverseMap();
+        CreateMap<PublisherCreateUpdateDto, Publisher>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
     /// <summary>Маппинги для читателей</summary>

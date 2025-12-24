@@ -68,6 +68,7 @@ public class PublishersController(
 
     /// <summary>
     /// Создать нового издателя.
+    /// ID генерируется автоматически на сервере.
     /// HTTP POST: /api/publishers
     /// </summary>
     [HttpPost]
@@ -79,13 +80,10 @@ public class PublishersController(
         logger.LogInformation("{Method} called", nameof(CreateAsync));
 
         if (input == null)
-            throw new ArgumentNullException(nameof(input), "Publisher data is required");
-
-        if (input.Id <= 0)
-            throw new ArgumentException($"Publisher ID must be greater than 0, получено: {input.Id}");
+            throw new ArgumentNullException(nameof(input), "Данные издателя обязательны");
 
         if (string.IsNullOrWhiteSpace(input.Name))
-            throw new ArgumentException("Publisher name is required");
+            throw new ArgumentException("Название издателя (Name) не может быть пустым");
 
         var result = await publisherService.CreateAsync(input);
 
@@ -112,10 +110,10 @@ public class PublishersController(
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
         if (input == null)
-            throw new ArgumentNullException(nameof(input), "Publisher data is required");
+            throw new ArgumentNullException(nameof(input), "Данные издателя обязательны");
 
         if (string.IsNullOrWhiteSpace(input.Name))
-            throw new ArgumentException("Publisher name is required");
+            throw new ArgumentException("Название издателя (Name) не может быть пустым");
 
         var result = await publisherService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Издатель с ID {id} не найден для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",

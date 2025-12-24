@@ -39,6 +39,21 @@ public class PublisherRepository(MongoDbContext context) : IPublisherRepository
     }
 
     /// <summary>
+    /// Получить максимальный ID из существующих издателей.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если издателей нет</returns>
+    public async Task<int> GetMaxIdAsync()
+    {
+        var maxId = await _publishers
+            .AsNoTracking()
+            .OrderByDescending(p => p.Id)
+            .Select(p => p.Id)
+            .FirstOrDefaultAsync();
+        return maxId > 0 ? maxId : 0;
+    }
+
+    /// <summary>
     /// Создать нового издателя в базе данных.
     /// </summary>
     /// <param name="entity">Объект Publisher для сохранения</param>

@@ -22,6 +22,13 @@ public interface IPublisherRepository
     public Task<IReadOnlyList<Publisher>> ReadAllAsync();
 
     /// <summary>
+    /// Получить максимальный ID из существующих издателей.
+    /// Используется для автоматической генерации следующего ID.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если издателей нет</returns>
+    public Task<int> GetMaxIdAsync();
+
+    /// <summary>
     /// Создать нового издателя в базе данных.
     /// </summary>
     /// <param name="entity">Объект Publisher для сохранения</param>

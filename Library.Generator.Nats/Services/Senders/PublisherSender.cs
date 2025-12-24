@@ -63,8 +63,8 @@ public sealed class PublisherSender(INatsProducer producer, ILogger<PublisherSen
         if (item is PublisherCreateUpdateDto dto)
         {
             _logger.LogInformation(
-                "Publisher sent to NATS: [{Sent}/{Total}] {Id} {Name}",
-                sent, total, dto.Id, dto.Name);
+                "Publisher sent to NATS: [{Sent}/{Total}] {Name}",
+                sent, total, dto.Name);
         }
     }
 }

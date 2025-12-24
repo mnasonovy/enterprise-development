@@ -34,11 +34,13 @@ public class PublisherService(IPublisherRepository publisherRepository, IMapper 
     }
 
     /// <summary>
-    /// Создаёт нового издателя.
+    /// Создаёт нового издателя с автоматической генерацией ID.
     /// </summary>
     public async Task<PublisherDto> CreateAsync(PublisherCreateUpdateDto input)
     {
+        var maxId = await _publisherRepository.GetMaxIdAsync();
         var publisher = _mapper.Map<Publisher>(input);
+        publisher.Id = maxId + 1; // ← генерируем новый ID
         var created = await _publisherRepository.CreateAsync(publisher);
         return _mapper.Map<PublisherDto>(created);
     }
@@ -67,23 +69,15 @@ public class PublisherService(IPublisherRepository publisherRepository, IMapper 
 
     /// <summary>
     /// Создаёт нового издателя или обновляет существующего (Upsert).
+    /// При создании генерируется новый ID автоматически.
     /// Идемпотентная операция для синхронизации из NATS.
     /// </summary>
     public async Task<PublisherDto> UpsertAsync(PublisherCreateUpdateDto input)
     {
-        var existing = await _publisherRepository.ReadAsync(input.Id);
-
-        if (existing != null)
-        {
-            _mapper.Map(input, existing);
-            var updated = await _publisherRepository.UpdateAsync(existing);
-            return _mapper.Map<PublisherDto>(updated)!;
-        }
-        else
-        {
-            var publisher = _mapper.Map<Publisher>(input);
-            var created = await _publisherRepository.CreateAsync(publisher);
-            return _mapper.Map<PublisherDto>(created);
-        }
+        var maxId = await _publisherRepository.GetMaxIdAsync();
+        var publisher = _mapper.Map<Publisher>(input);
+        publisher.Id = maxId + 1; // ← генерируем новый ID при создании
+        var upsertedPublisher = await _publisherRepository.CreateAsync(publisher);
+        return _mapper.Map<PublisherDto>(upsertedPublisher);
     }
 }
