@@ -22,6 +22,13 @@ public interface IIssueRepository
     public Task<IReadOnlyList<Issue>> GetListAsync();
 
     /// <summary>
+    /// Получить максимальный ID из существующих выданных книг.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если выданных книг нет</returns>
+    public Task<int> GetMaxIdAsync();
+
+    /// <summary>
     /// Создать новую выданную книгу.
     /// </summary>
     /// <param name="entity">Объект Issue для сохранения</param>

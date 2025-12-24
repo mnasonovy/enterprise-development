@@ -13,6 +13,7 @@ namespace Library.Application.Mappings;
 
 /// <summary>
 /// AutoMapper профиль для конфигурации всех маппингов между DTO и Domain моделями.
+/// ID генерируется автоматически на сервере, поэтому игнорируется при маппинге из DTO.
 /// </summary>
 public class MappingProfile : Profile
 {
@@ -27,7 +28,7 @@ public class MappingProfile : Profile
         MapAnalytics();
     }
 
-    /// <summary>Маппинги для авторов</summary>
+    /// <summary>Маппинги для авторов. ID генерируется автоматически на сервере.</summary>
     private void MapAuthors()
     {
         CreateMap<Author, AuthorDto>().ReverseMap();
@@ -35,7 +36,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
-    /// <summary>Маппинги для книг</summary>
+    /// <summary>Маппинги для книг. ID генерируется автоматически на сервере.</summary>
     private void MapBooks()
     {
         CreateMap<Book, BookDto>()
@@ -50,7 +51,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
-    /// <summary>Маппинги для типов книг</summary>
+    /// <summary>Маппинги для типов книг. ID генерируется автоматически на сервере.</summary>
     private void MapBookTypes()
     {
         CreateMap<BookType, BookTypeDto>().ReverseMap();
@@ -58,7 +59,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
-    /// <summary>Маппинги для выданных книг</summary>
+    /// <summary>Маппинги для выданных книг. ID генерируется автоматически на сервере.</summary>
     private void MapIssues()
     {
         CreateMap<Issue, IssueDto>()
@@ -67,10 +68,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.ReaderFullName,
                 opt => opt.MapFrom(src => src.Reader.FullName));
 
-        CreateMap<Issue, IssueCreateUpdateDto>().ReverseMap();
+        CreateMap<IssueCreateUpdateDto, Issue>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
-    /// <summary>Маппинги для издателей</summary>
+    /// <summary>Маппинги для издателей. ID генерируется автоматически на сервере.</summary>
     private void MapPublishers()
     {
         CreateMap<Publisher, PublisherDto>().ReverseMap();
@@ -78,7 +80,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
-    /// <summary>Маппинги для читателей</summary>
+    /// <summary>Маппинги для читателей. ID генерируется автоматически на сервере.</summary>
     private void MapReaders()
     {
         CreateMap<Reader, ReaderDto>().ReverseMap();

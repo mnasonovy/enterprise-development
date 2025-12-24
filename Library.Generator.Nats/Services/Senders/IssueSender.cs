@@ -8,6 +8,7 @@ namespace Library.Generator.Nats.Services.Senders;
 /// <summary>
 /// Генератор и отправитель данных выдач в NATS JetStream.
 /// Генерирует 300 выдач с Bogus и публикует в очередь для синхронизации.
+/// ID генерируется автоматически на сервере.
 /// </summary>
 public sealed class IssueSender(INatsProducer producer, ILogger<IssueSender> logger)
     : BaseSeedDataSender<IssueCreateUpdateDto>(producer, logger)
@@ -44,11 +45,11 @@ public sealed class IssueSender(INatsProducer producer, ILogger<IssueSender> log
     /// Генерирует выдачи с использованием Bogus (300 штук).
     /// Каждой выдаче присваиваются случайные книга, читатель, даты выдачи и возврата.
     /// 85% выдач содержат дату возврата, 15% еще в процессе.
+    /// ID не генерируется, будет создан на сервере автоматически.
     /// </summary>
     private static List<IssueCreateUpdateDto> GenerateIssuesWithBogus(int count)
     {
         var issueFaker = new Faker<IssueCreateUpdateDto>("ru")
-            .RuleFor(i => i.Id, (f, u) => f.IndexFaker + 1)
             .RuleFor(i => i.BookId, f => f.Random.Int(1, 200))
             .RuleFor(i => i.ReaderId, f => f.Random.Int(1, 100))
             .RuleFor(i => i.IssueDate, f => f.Date.Between(
@@ -72,8 +73,8 @@ public sealed class IssueSender(INatsProducer producer, ILogger<IssueSender> log
         {
             var status = dto.ReturnDate.HasValue ? "Returned" : "Active";
             _logger.LogInformation(
-                "Issue sent to NATS: [{Sent}/{Total}] {Id} BookId={BookId} ReaderId={ReaderId} Days={Days} Status={Status}",
-                sent, total, dto.Id, dto.BookId, dto.ReaderId, dto.DaysCount, status);
+                "Issue sent to NATS: [{Sent}/{Total}] BookId={BookId} ReaderId={ReaderId} Days={Days} Status={Status}",
+                sent, total, dto.BookId, dto.ReaderId, dto.DaysCount, status);
         }
     }
 }

@@ -52,6 +52,22 @@ public class IssueRepository(MongoDbContext context) : IIssueRepository
     }
 
     /// <summary>
+    /// Получить максимальный ID из существующих выданных книг.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если выданных книг нет</returns>
+    public async Task<int> GetMaxIdAsync()
+    {
+        var maxId = await _issues
+            .AsNoTracking()
+            .OrderByDescending(i => i.Id)
+            .Select(i => i.Id)
+            .FirstOrDefaultAsync();
+
+        return maxId > 0 ? maxId : 0;
+    }
+
+    /// <summary>
     /// Создать новую выданную книгу в базе данных.
     /// Автоматически загружает связанные сущности Book и Reader для корректного маппинга в DTO.
     /// Использует Entry().LoadAsync() вместо Include().

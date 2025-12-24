@@ -5,17 +5,10 @@ namespace Library.Application.Contracts.Issues;
 /// <summary>
 /// DTO для создания и обновления выданной книги.
 /// Используется в POST (создание) и PUT (обновление/возврат) запросах.
+/// ID генерируется автоматически на сервере.
 /// </summary>
 public class IssueCreateUpdateDto
 {
-    /// <summary>
-    /// Уникальный идентификатор выдачи.
-    /// Устанавливается вручную при создании (обязателен и должен быть > 0).
-    /// </summary>
-    [Range(1, int.MaxValue,
-        ErrorMessage = "ID должен быть положительным числом")]
-    public int Id { get; set; }
-
     /// <summary>
     /// ID книги, которая выдается.
     /// Обязательное поле, должен быть > 0.

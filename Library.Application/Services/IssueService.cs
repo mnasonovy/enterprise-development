@@ -9,6 +9,7 @@ namespace Library.Application.Services;
 /// Сервис для управления выдачами (выданными книгами) в библиотечной системе.
 /// Реализует CRUD операции и Upsert для синхронизации с NATS JetStream.
 /// Выдача отслеживает процесс: Книга → Читатель → Возврат.
+/// ID генерируется автоматически на сервере.
 /// </summary>
 public class IssueService(IIssueRepository issueRepository, IMapper mapper) : IIssueService
 {
@@ -34,12 +35,14 @@ public class IssueService(IIssueRepository issueRepository, IMapper mapper) : II
     }
 
     /// <summary>
-    /// Создаёт новую запись о выданной книге.
+    /// Создаёт новую запись о выданной книге с автоматической генерацией ID.
     /// Требует существующих BookId и ReaderId.
     /// </summary>
     public async Task<IssueDto> CreateAsync(IssueCreateUpdateDto input)
     {
+        var maxId = await _issueRepository.GetMaxIdAsync();
         var issue = _mapper.Map<Issue>(input);
+        issue.Id = maxId + 1; // ← генерируем новый ID
         var created = await _issueRepository.CreateAsync(issue);
         return _mapper.Map<IssueDto>(created);
     }
@@ -68,24 +71,16 @@ public class IssueService(IIssueRepository issueRepository, IMapper mapper) : II
     }
 
     /// <summary>
-    /// Создаёт новую выдачу или обновляет существующую (Upsert).
+    /// Создаёт новую выдачу с автоматической генерацией ID.
     /// Идемпотентная операция для синхронизации из NATS.
     /// </summary>
     public async Task<IssueDto> UpsertAsync(IssueCreateUpdateDto input)
     {
-        var existing = await _issueRepository.GetAsync(input.Id);
-
-        if (existing != null)
-        {
-            _mapper.Map(input, existing);
-            var updated = await _issueRepository.UpdateAsync(existing);
-            return _mapper.Map<IssueDto>(updated)!;
-        }
-        else
-        {
-            var issue = _mapper.Map<Issue>(input);
-            var created = await _issueRepository.CreateAsync(issue);
-            return _mapper.Map<IssueDto>(created);
-        }
+        // Создаём новую выдачу с автоматической генерацией ID
+        var maxId = await _issueRepository.GetMaxIdAsync();
+        var issue = _mapper.Map<Issue>(input);
+        issue.Id = maxId + 1; // ← генерируем новый ID при создании
+        var created = await _issueRepository.CreateAsync(issue);
+        return _mapper.Map<IssueDto>(created);
     }
 }

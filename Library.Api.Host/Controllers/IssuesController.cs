@@ -5,6 +5,7 @@ namespace Library.Api.Host.Controllers;
 
 /// <summary>
 /// REST API контроллер для полного управления выданными книгами (Issue).
+/// ID генерируется автоматически на сервере, клиент не передает ID при создании.
 /// Вся обработка ошибок перенесена в глобальный ExceptionHandlingMiddleware:
 /// - ArgumentException / ArgumentNullException → 400
 /// - KeyNotFoundException → 404
@@ -59,6 +60,7 @@ public class IssuesController(IIssueService issueService, ILogger<IssuesControll
     }
 
     // POST /api/issues
+    // ID генерируется автоматически на сервере
     [HttpPost]
     [ProducesResponseType(201, Type = typeof(IssueDto))]
     [ProducesResponseType(400)]
