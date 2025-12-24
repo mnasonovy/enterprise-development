@@ -68,6 +68,7 @@ public class ReadersController(
 
     /// <summary>
     /// Создать нового читателя.
+    /// ID генерируется автоматически на сервере.
     /// HTTP POST: /api/readers
     /// </summary>
     [HttpPost]
@@ -79,16 +80,13 @@ public class ReadersController(
         logger.LogInformation("{Method} called", nameof(CreateAsync));
 
         if (input == null)
-            throw new ArgumentNullException(nameof(input), "Reader data is required");
-
-        if (input.Id <= 0)
-            throw new ArgumentException($"Reader ID must be greater than 0, получено: {input.Id}");
+            throw new ArgumentNullException(nameof(input), "Данные читателя обязательны");
 
         if (string.IsNullOrWhiteSpace(input.FullName))
-            throw new ArgumentException("Reader full name is required");
+            throw new ArgumentException("Полное имя читателя (FullName) не может быть пустым");
 
         if (input.RegistrationDate == default)
-            throw new ArgumentException("Registration date is required");
+            throw new ArgumentException("Дата регистрации обязательна");
 
         var result = await readerService.CreateAsync(input);
 
@@ -115,13 +113,13 @@ public class ReadersController(
             throw new ArgumentException($"ID должен быть больше 0, получено: {id}");
 
         if (input == null)
-            throw new ArgumentNullException(nameof(input), "Reader data is required");
+            throw new ArgumentNullException(nameof(input), "Данные читателя обязательны");
 
         if (string.IsNullOrWhiteSpace(input.FullName))
-            throw new ArgumentException("Reader full name is required");
+            throw new ArgumentException("Полное имя читателя (FullName) не может быть пустым");
 
         if (input.RegistrationDate == default)
-            throw new ArgumentException("Registration date is required");
+            throw new ArgumentException("Дата регистрации обязательна");
 
         var result = await readerService.UpdateAsync(id, input) ?? throw new KeyNotFoundException($"Читатель с ID {id} не найден для обновления");
         logger.LogInformation("{Method} executed successfully with id={Id} (200)",

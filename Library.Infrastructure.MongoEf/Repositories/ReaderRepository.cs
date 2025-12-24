@@ -39,6 +39,21 @@ public class ReaderRepository(MongoDbContext context) : IReaderRepository
     }
 
     /// <summary>
+    /// Получить максимальный ID из существующих читателей.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если читателей нет</returns>
+    public async Task<int> GetMaxIdAsync()
+    {
+        var maxId = await _readers
+            .AsNoTracking()
+            .OrderByDescending(r => r.Id)
+            .Select(r => r.Id)
+            .FirstOrDefaultAsync();
+        return maxId > 0 ? maxId : 0;
+    }
+
+    /// <summary>
     /// Создать нового читателя в базе данных.
     /// </summary>
     /// <param name="entity">Объект Reader для сохранения</param>

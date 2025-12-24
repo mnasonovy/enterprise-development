@@ -22,6 +22,13 @@ public interface IReaderRepository
     public Task<IReadOnlyList<Reader>> ReadAllAsync();
 
     /// <summary>
+    /// Получить максимальный ID из существующих читателей.
+    /// Используется для автоматической генерации следующего ID.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если читателей нет</returns>
+    public Task<int> GetMaxIdAsync();
+
+    /// <summary>
     /// Создать нового читателя в базе данных.
     /// </summary>
     /// <param name="entity">Объект Reader для сохранения</param>

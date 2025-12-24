@@ -43,11 +43,11 @@ public sealed class ReaderSender(INatsProducer producer, ILogger<ReaderSender> l
     /// <summary>
     /// Генерирует читателей с использованием Bogus (100 штук).
     /// Каждому читателю присваиваются ФИ, адрес, телефон и дата регистрации.
+    /// ID генерируется автоматически на сервере.
     /// </summary>
     private static List<ReaderCreateUpdateDto> GenerateReadersWithBogus(int count)
     {
         var readerFaker = new Faker<ReaderCreateUpdateDto>("ru")
-            .RuleFor(r => r.Id, (f, u) => f.IndexFaker + 1)
             .RuleFor(r => r.FullName, f => f.Person.FullName)
             .RuleFor(r => r.Address, f => f.Address.FullAddress())
             .RuleFor(r => r.Phone, f => f.Phone.PhoneNumber("+7 (9##) ###-##-##"))
@@ -66,8 +66,8 @@ public sealed class ReaderSender(INatsProducer producer, ILogger<ReaderSender> l
         if (item is ReaderCreateUpdateDto dto)
         {
             _logger.LogInformation(
-                "Reader sent to NATS: [{Sent}/{Total}] {Id} {FullName}",
-                sent, total, dto.Id, dto.FullName);
+                "Reader sent to NATS: [{Sent}/{Total}] {FullName}",
+                sent, total, dto.FullName);
         }
     }
 }

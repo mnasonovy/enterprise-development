@@ -81,7 +81,8 @@ public class MappingProfile : Profile
     private void MapReaders()
     {
         CreateMap<Reader, ReaderDto>().ReverseMap();
-        CreateMap<Reader, ReaderCreateUpdateDto>().ReverseMap();
+        CreateMap<ReaderCreateUpdateDto, Reader>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
     /// <summary>Маппинги для аналитических DTO</summary>

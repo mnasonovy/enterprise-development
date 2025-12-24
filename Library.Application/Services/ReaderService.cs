@@ -34,11 +34,13 @@ public class ReaderService(IReaderRepository readerRepository, IMapper mapper) :
     }
 
     /// <summary>
-    /// Создаёт нового читателя и регистрирует в системе.
+    /// Создаёт нового читателя с автоматической генерацией ID и регистрирует в системе.
     /// </summary>
     public async Task<ReaderDto> CreateAsync(ReaderCreateUpdateDto input)
     {
+        var maxId = await _readerRepository.GetMaxIdAsync();
         var reader = _mapper.Map<Reader>(input);
+        reader.Id = maxId + 1; // ← генерируем новый ID
         var created = await _readerRepository.CreateAsync(reader);
         return _mapper.Map<ReaderDto>(created);
     }
@@ -67,23 +69,15 @@ public class ReaderService(IReaderRepository readerRepository, IMapper mapper) :
 
     /// <summary>
     /// Создаёт нового читателя или обновляет существующего (Upsert).
+    /// При создании генерируется новый ID автоматически.
     /// Идемпотентная операция для синхронизации из NATS.
     /// </summary>
     public async Task<ReaderDto> UpsertAsync(ReaderCreateUpdateDto input)
     {
-        var existing = await _readerRepository.ReadAsync(input.Id);
-
-        if (existing != null)
-        {
-            _mapper.Map(input, existing);
-            var updated = await _readerRepository.UpdateAsync(existing);
-            return _mapper.Map<ReaderDto>(updated)!;
-        }
-        else
-        {
-            var reader = _mapper.Map<Reader>(input);
-            var created = await _readerRepository.CreateAsync(reader);
-            return _mapper.Map<ReaderDto>(created);
-        }
+        var maxId = await _readerRepository.GetMaxIdAsync();
+        var reader = _mapper.Map<Reader>(input);
+        reader.Id = maxId + 1; // ← генерируем новый ID при создании
+        var upsertedReader = await _readerRepository.CreateAsync(reader);
+        return _mapper.Map<ReaderDto>(upsertedReader);
     }
 }
