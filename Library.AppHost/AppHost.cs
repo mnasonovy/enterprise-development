@@ -23,7 +23,7 @@ builder
 
 // API
 builder.AddProject<Library_Api_Host>("api")
-    .WithReference(mongoDb)
+    .WithReference(mongoDb, "mongodb")
     .WithReference(nats)
     .WithExternalHttpEndpoints()
     .WaitFor(mongoDb);
