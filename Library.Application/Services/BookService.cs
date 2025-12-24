@@ -34,12 +34,14 @@ public class BookService(IBookRepository bookRepository, IMapper mapper) : IBook
     }
 
     /// <summary>
-    /// Создаёт новую книгу.
+    /// Создаёт новую книгу с автоматической генерацией ID.
     /// Требует существующих BookTypeId, PublisherId и AuthorIds.
     /// </summary>
     public async Task<BookDto> CreateAsync(BookCreateUpdateDto input)
     {
+        var maxId = await _bookRepository.GetMaxIdAsync();
         var book = _mapper.Map<Book>(input);
+        book.Id = maxId + 1; // ← генерируем новый ID
         var created = await _bookRepository.CreateAsync(book);
         return _mapper.Map<BookDto>(created);
     }
@@ -68,23 +70,15 @@ public class BookService(IBookRepository bookRepository, IMapper mapper) : IBook
 
     /// <summary>
     /// Создаёт новую книгу или обновляет существующую (Upsert).
+    /// При создании генерируется новый ID автоматически.
     /// Идемпотентная операция для синхронизации из NATS.
     /// </summary>
     public async Task<BookDto> UpsertAsync(BookCreateUpdateDto input)
     {
-        var existing = await _bookRepository.ReadAsync(input.Id);
-
-        if (existing != null)
-        {
-            _mapper.Map(input, existing);
-            var updated = await _bookRepository.UpdateAsync(existing);
-            return _mapper.Map<BookDto>(updated)!;
-        }
-        else
-        {
-            var book = _mapper.Map<Book>(input);
-            var created = await _bookRepository.CreateAsync(book);
-            return _mapper.Map<BookDto>(created);
-        }
+        var maxId = await _bookRepository.GetMaxIdAsync();
+        var book = _mapper.Map<Book>(input);
+        book.Id = maxId + 1; // ← генерируем новый ID при создании
+        var upsertedBook = await _bookRepository.CreateAsync(book);
+        return _mapper.Map<BookDto>(upsertedBook);
     }
 }

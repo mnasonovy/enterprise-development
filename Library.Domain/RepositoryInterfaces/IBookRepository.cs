@@ -22,6 +22,13 @@ public interface IBookRepository
     public Task<IReadOnlyList<Book>> ReadAllAsync();
 
     /// <summary>
+    /// Получить максимальный ID из существующих книг.
+    /// Используется для автоматической генерации следующего ID.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если книг нет</returns>
+    public Task<int> GetMaxIdAsync();
+
+    /// <summary>
     /// Создать новую книгу в базе данных.
     /// </summary>
     /// <param name="entity">Объект Book для сохранения</param>

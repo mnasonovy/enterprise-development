@@ -45,11 +45,11 @@ public sealed class BookSender(INatsProducer producer, ILogger<BookSender> logge
     /// Генерирует книги с использованием Bogus (200 штук).
     /// Названия генерируются из 3-5 русских слов с заглавными буквами.
     /// Каждой книге присваиваются случайные авторы, тип и издатель.
+    /// ID генерируется автоматически на сервере.
     /// </summary>
     private static List<BookCreateUpdateDto> GenerateBooksWithBogus(int count)
     {
         var bookFaker = new Faker<BookCreateUpdateDto>("ru")
-            .RuleFor(b => b.Id, (f, u) => f.IndexFaker + 1)
             .RuleFor(b => b.Title, f =>
                 string.Join(" ",
                     f.Lorem.Words(f.Random.Int(3, 5))
@@ -78,8 +78,8 @@ public sealed class BookSender(INatsProducer producer, ILogger<BookSender> logge
         {
             var authorCount = dto.AuthorIds.Count;
             _logger.LogInformation(
-                "Book sent to NATS: [{Sent}/{Total}] {Id} \"{Title}\" ({Year}, {AuthorCount} author(s))",
-                sent, total, dto.Id, dto.Title, dto.Year, authorCount);
+                "Book sent to NATS: [{Sent}/{Total}] \"{Title}\" ({Year}, {AuthorCount} author(s))",
+                sent, total, dto.Title, dto.Year, authorCount);
         }
     }
 }

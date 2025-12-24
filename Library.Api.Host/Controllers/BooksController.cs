@@ -70,6 +70,7 @@ public class BooksController(IBookService bookService, ILogger<BooksController> 
 
     /// <summary>
     /// Создает новую книгу в каталоге.
+    /// ID генерируется автоматически на сервере.
     /// HTTP POST: /api/books
     /// </summary>
     [HttpPost]
@@ -82,9 +83,6 @@ public class BooksController(IBookService bookService, ILogger<BooksController> 
 
         if (input == null)
             throw new ArgumentNullException(nameof(input), "Тело запроса не может быть пусто");
-
-        if (input.Id <= 0)
-            throw new ArgumentException($"ID должен быть больше 0, получено: {input.Id}");
 
         if (string.IsNullOrWhiteSpace(input.Title))
             throw new ArgumentException("Название книги (Title) не может быть пустым");

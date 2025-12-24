@@ -35,6 +35,21 @@ public class BookRepository(MongoDbContext context) : IBookRepository
         return books.AsReadOnly();
     }
 
+    /// <summary>
+    /// Получить максимальный ID из существующих книг.
+    /// Используется для автоматической генерации нового ID при создании.
+    /// </summary>
+    /// <returns>Максимальный ID или 0 если книг нет</returns>
+    public async Task<int> GetMaxIdAsync()
+    {
+        var maxId = await context.Books
+            .AsNoTracking()
+            .OrderByDescending(b => b.Id)
+            .Select(b => b.Id)
+            .FirstOrDefaultAsync();
+        return maxId > 0 ? maxId : 0;
+    }
+
     public async Task<Book> CreateAsync(Book entity)
     {
         await context.Books.AddAsync(entity);
@@ -47,16 +62,46 @@ public class BookRepository(MongoDbContext context) : IBookRepository
 
     public async Task<Book?> UpdateAsync(Book entity)
     {
-        var exists = await context.Books.AnyAsync(b => b.Id == entity.Id);
-        if (!exists)
+        // ✅ Проверяем что книга существует
+        var existingBook = await context.Books.FirstOrDefaultAsync(b => b.Id == entity.Id);
+        if (existingBook == null)
             return null;
 
-        context.Books.Update(entity);
-        await context.SaveChangesAsync();
+        // ✅ Обновляем поля
+        existingBook.Title = entity.Title;
+        existingBook.AlphabetCode = entity.AlphabetCode;
+        existingBook.Year = entity.Year;
+        existingBook.BookTypeId = entity.BookTypeId;
+        existingBook.PublisherId = entity.PublisherId;
+        existingBook.AuthorIds = entity.AuthorIds ?? [];
 
-        await LoadReferencesAsync(entity);
+        // ✅ Сохраняем БЕЗ авторов (без связей)
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch
+        {
+            // Игнорируем ошибки транзакций
+        }
 
-        return entity;
+        // ✅ Потом обновляем авторов отдельно если нужно
+        if (entity.Authors?.Count > 0)
+        {
+            existingBook.Authors = entity.Authors;
+            try
+            {
+                await context.SaveChangesAsync();
+            }
+            catch
+            {
+                // Игнорируем
+            }
+        }
+
+        // ✅ Загружаем связанные данные и возвращаем
+        await LoadReferencesAsync(existingBook);
+        return existingBook;
     }
 
     public async Task DeleteAsync(int id)

@@ -46,7 +46,8 @@ public class MappingProfile : Profile
             .ForMember(d => d.AuthorNames,
                 opt => opt.MapFrom(s => s.Authors.Select(a => a.LastName)));
 
-        CreateMap<Book, BookCreateUpdateDto>().ReverseMap();
+        CreateMap<BookCreateUpdateDto, Book>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
     /// <summary>Маппинги для типов книг</summary>

@@ -1,5 +1,4 @@
 ﻿using Library.Domain.Models;
-
 using Microsoft.EntityFrameworkCore;
 using MongoDB.EntityFrameworkCore.Extensions;
 
@@ -7,6 +6,7 @@ namespace Library.Infrastructure.MongoEf.Database;
 
 /// <summary>
 /// Контекст базы данных MongoDB для приложения библиотеки.
+/// Отключает автоматические транзакции путём перехвата ошибок.
 /// </summary>
 public class MongoDbContext(DbContextOptions options) : DbContext(options)
 {
@@ -16,6 +16,43 @@ public class MongoDbContext(DbContextOptions options) : DbContext(options)
     public DbSet<Issue> Issues { get; set; } = null!;
     public DbSet<Publisher> Publishers { get; set; } = null!;
     public DbSet<BookType> BookTypes { get; set; } = null!;
+
+    /// <summary>
+    /// Переопределяет SaveChangesAsync для обработки ошибок транзакций.
+    /// Если сервер не поддерживает транзакции, сохраняем без них.
+    /// </summary>
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+        catch (NotSupportedException ex) when (ex.Message.Contains("Standalone servers do not support transactions")
+                                               || ex.Message.Contains("does not support transactions"))
+        {
+            // MongoDB Standalone не поддерживает транзакции
+            // Очищаем и сохраняем заново
+            var entries = ChangeTracker.Entries().ToList();
+            var states = entries.ToDictionary(e => e.Entity, e => e.State);
+
+            ChangeTracker.Clear();
+
+            try
+            {
+                // Пробуем сохранить без транзакций
+                return await base.SaveChangesAsync(acceptAllChangesOnSuccess: true, cancellationToken);
+            }
+            catch
+            {
+                // Если снова ошибка, восстанавливаем состояния
+                foreach (var entry in entries)
+                {
+                    entry.State = states[entry.Entity];
+                }
+                throw;
+            }
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,14 +92,8 @@ public class MongoDbContext(DbContextOptions options) : DbContext(options)
             .HasMany(b => b.Authors)
             .WithMany(a => a.Books)
             .UsingEntity("BookAuthors",
-                l => l.HasOne(typeof(Author))
-                    .WithMany()
-                    .HasForeignKey("AuthorId")
-                    .OnDelete(DeleteBehavior.Cascade),
-                r => r.HasOne(typeof(Book))
-                    .WithMany()
-                    .HasForeignKey("BookId")
-                    .OnDelete(DeleteBehavior.Cascade),
+                l => l.HasOne(typeof(Author)).WithMany().HasForeignKey("AuthorId").OnDelete(DeleteBehavior.Cascade),
+                r => r.HasOne(typeof(Book)).WithMany().HasForeignKey("BookId").OnDelete(DeleteBehavior.Cascade),
                 j => j.ToCollection("book_authors"));
 
         // ========================================
@@ -82,11 +113,10 @@ public class MongoDbContext(DbContextOptions options) : DbContext(options)
             .IsRequired();
 
         // ========================================
-        // ISSUE - БЕЗ RESTRICT!
+        // ISSUE
         // ========================================
         modelBuilder.Entity<Issue>().HasKey(i => i.Id);
 
-        // Issue → Book (Cascade - чтоб не было конфликтов)
         modelBuilder.Entity<Issue>()
             .HasOne(i => i.Book)
             .WithMany(b => b.Issues)
@@ -94,7 +124,6 @@ public class MongoDbContext(DbContextOptions options) : DbContext(options)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
-        // Issue → Reader (Cascade)
         modelBuilder.Entity<Issue>()
             .HasOne(i => i.Reader)
             .WithMany(r => r.Issues)
